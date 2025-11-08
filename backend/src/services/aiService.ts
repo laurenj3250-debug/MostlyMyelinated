@@ -212,69 +212,31 @@ Return ONLY valid JSON, no other text.`;
 
 /**
  * AI-powered image description for image occlusion prep
+ *
+ * Note: Temporarily disabled - Anthropic API only supports base64 images,
+ * not URLs. Will be re-enabled when image upload is implemented.
  */
-export async function describeImageForOcclusion(imageUrl: string): Promise<{
+export async function describeImageForOcclusion(imageBase64: string): Promise<{
   description: string;
   keyStructures: string[];
   suggestedOcclusions: Array<{ label: string; importance: 'high' | 'medium' | 'low' }>;
 }> {
-  const prompt = `Analyze this veterinary neurology image and provide:
+  // TODO: Implement when image upload is ready
+  // const message = await anthropic.messages.create({
+  //   model: 'claude-3-5-sonnet-20241022',
+  //   max_tokens: 1000,
+  //   messages: [{
+  //     role: 'user',
+  //     content: [{
+  //       type: 'image',
+  //       source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 }
+  //     }]
+  //   }]
+  // });
 
-1. Overall description
-2. Key anatomical structures visible
-3. Suggested structures to occlude for flashcards (with importance)
-
-Format as JSON:
-{
-  "description": "Brief description of the image",
-  "keyStructures": ["structure1", "structure2", ...],
-  "suggestedOcclusions": [
-    {"label": "structure name", "importance": "high"},
-    ...
-  ]
-}
-
-Return ONLY valid JSON, no other text.`;
-
-  try {
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1000,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'url',
-                url: imageUrl,
-              },
-            },
-            {
-              type: 'text',
-              text: prompt,
-            },
-          ],
-        },
-      ],
-    });
-
-    const content = message.content[0];
-    if (content.type === 'text') {
-      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-    }
-
-    return {
-      description: '',
-      keyStructures: [],
-      suggestedOcclusions: [],
-    };
-  } catch (error) {
-    console.error('AI image description failed:', error);
-    throw error;
-  }
+  return {
+    description: 'Image analysis not yet implemented',
+    keyStructures: [],
+    suggestedOcclusions: [],
+  };
 }

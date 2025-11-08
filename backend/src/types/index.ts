@@ -19,6 +19,7 @@ export interface FSRSData {
   lapses: number;
   state: number; // 0=New, 1=Learning, 2=Review, 3=Relearning
   last_review?: string;
+  [key: string]: any; // Index signature for Prisma JSON compatibility
 }
 
 // Card generation templates

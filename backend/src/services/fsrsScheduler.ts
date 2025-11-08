@@ -1,14 +1,14 @@
-import { FSRS, Rating, Card, Grade, RecordLog } from 'ts-fsrs';
+import { FSRS, Rating, createEmptyCard, type Card, type RecordLog } from 'ts-fsrs';
 import { FSRSData } from '../types';
 
 // Initialize FSRS with default parameters
-const fsrs = new FSRS();
+const fsrs = new FSRS({});
 
 /**
  * Create initial FSRS data for a new card
  */
 export function createInitialFSRSData(): FSRSData {
-  const emptyCard = new Card();
+  const emptyCard = createEmptyCard();
   const now = new Date();
 
   return {
@@ -27,7 +27,7 @@ export function createInitialFSRSData(): FSRSData {
  * Convert FSRSData to ts-fsrs Card
  */
 function fsrsDataToCard(data: FSRSData): Card {
-  return new Card({
+  return {
     due: new Date(data.due),
     stability: data.stability,
     difficulty: data.difficulty,
@@ -37,7 +37,7 @@ function fsrsDataToCard(data: FSRSData): Card {
     lapses: data.lapses,
     state: data.state,
     last_review: data.last_review ? new Date(data.last_review) : undefined,
-  });
+  };
 }
 
 /**
@@ -85,8 +85,9 @@ export function processReview(
 
   // Schedule the card
   const schedulingResult = fsrs.repeat(card, new Date());
-  const nextCard = schedulingResult[fsrsRating].card;
-  const reviewLog = schedulingResult[fsrsRating].log;
+  const ratingKey = fsrsRating as keyof typeof schedulingResult;
+  const nextCard = schedulingResult[ratingKey].card;
+  const reviewLog = schedulingResult[ratingKey].log;
 
   return {
     updatedFSRSData: cardToFSRSData(nextCard),
