@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface Props {
   factId: string;
-  currentStatement: string;
   onImproved: (improved: string) => void;
 }
 
 export default function AIFactImprover({
   factId,
-  currentStatement,
   onImproved,
 }: Props) {
   const [loading, setLoading] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { nodes, facts as factsApi } from '../services/api';
 import { Node, Fact } from '../types';
