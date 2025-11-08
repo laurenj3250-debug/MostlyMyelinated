@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import authRoutes from './routes/auth';
 import nodeRoutes from './routes/nodes';
 import factRoutes from './routes/facts';
@@ -32,8 +33,11 @@ app.use('/api/cards', cardRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/ai', aiRoutes);
 
-// Root route
-app.get('/', (req, res) => {
+// Serve static files (frontend)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// API root route (for debugging)
+app.get('/api', (req, res) => {
   res.json({
     message: 'MostlyMyelinated API',
     version: '1.0.0',
@@ -46,6 +50,13 @@ app.get('/', (req, res) => {
       ai: '/api/ai',
     },
   });
+});
+
+// Handle React Router - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  }
 });
 
 // Error handling
