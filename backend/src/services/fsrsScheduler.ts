@@ -1,4 +1,4 @@
-import { FSRS, Rating, createEmptyCard, type Card, type RecordLog } from 'ts-fsrs';
+import { FSRS, Rating, createEmptyCard, type Card, type ReviewLog } from 'ts-fsrs';
 import { FSRSData } from '../types';
 
 // Initialize FSRS with default parameters
@@ -69,7 +69,7 @@ export function processReview(
   rating: 0 | 1 | 2 | 3
 ): {
   updatedFSRSData: FSRSData;
-  reviewLog: RecordLog;
+  reviewLog: ReviewLog;
 } {
   const card = fsrsDataToCard(currentFSRSData);
 
