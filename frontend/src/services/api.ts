@@ -9,7 +9,8 @@ import type {
   StudyStats,
 } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Use relative path in production (same domain), localhost in dev
+const API_URL = '/api';
 
 // Axios instance
 const api = axios.create({
