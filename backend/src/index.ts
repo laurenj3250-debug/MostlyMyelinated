@@ -1,0 +1,58 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth';
+import nodeRoutes from './routes/nodes';
+import factRoutes from './routes/facts';
+import cardRoutes from './routes/cards';
+import studyRoutes from './routes/study';
+import { errorHandler } from './middleware/errorHandler';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/nodes', nodeRoutes);
+app.use('/api/facts', factRoutes);
+app.use('/api/cards', cardRoutes);
+app.use('/api/study', studyRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'MostlyMyelinated API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      nodes: '/api/nodes',
+      facts: '/api/facts',
+      cards: '/api/cards',
+      study: '/api/study',
+    },
+  });
+});
+
+// Error handling
+app.use(errorHandler);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🧠 MostlyMyelinated API running on port ${PORT}`);
+  console.log(`📍 Health check: http://localhost:${PORT}/health`);
+  console.log(`📚 API docs: http://localhost:${PORT}/`);
+});
+
+export default app;

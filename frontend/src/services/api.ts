@@ -1,0 +1,145 @@
+import axios from 'axios';
+import type {
+  User,
+  AuthResponse,
+  Node,
+  Fact,
+  Card,
+  StudySession,
+  StudyStats,
+} from '../types';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Axios instance
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Auth API
+export const auth = {
+  register: (email: string, password: string, name?: string) =>
+    api.post<AuthResponse>('/auth/register', { email, password, name }),
+
+  login: (email: string, password: string) =>
+    api.post<AuthResponse>('/auth/login', { email, password }),
+
+  me: () => api.get<User>('/auth/me'),
+
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+};
+
+// Nodes API
+export const nodes = {
+  list: () => api.get<Node[]>('/nodes'),
+
+  get: (id: string) => api.get<Node>(`/nodes/${id}`),
+
+  create: (data: {
+    name: string;
+    summary?: string;
+    parentId?: string;
+    tags?: string[];
+  }) => api.post<Node>('/nodes', data),
+
+  update: (
+    id: string,
+    data: {
+      name?: string;
+      summary?: string;
+      parentId?: string;
+      tags?: string[];
+    }
+  ) => api.patch<Node>(`/nodes/${id}`, data),
+
+  delete: (id: string) => api.delete(`/nodes/${id}`),
+
+  getStrength: (id: string) => api.get<{ strength: number }>(`/nodes/${id}/strength`),
+};
+
+// Facts API
+export const facts = {
+  create: (data: {
+    nodeId: string;
+    statement: string;
+    factType: string;
+    keyTerms?: string[];
+  }) => api.post<Fact>('/facts', data),
+
+  update: (
+    id: string,
+    data: {
+      statement?: string;
+      factType?: string;
+      keyTerms?: string[];
+    }
+  ) => api.patch<Fact>(`/facts/${id}`, data),
+
+  delete: (id: string) => api.delete(`/facts/${id}`),
+
+  generateCards: (id: string) =>
+    api.post<{ fact: Fact; cards: Card[]; count: number }>(
+      `/facts/${id}/generate-cards`
+    ),
+};
+
+// Cards API
+export const cards = {
+  get: (id: string) => api.get<Card>(`/cards/${id}`),
+
+  create: (data: {
+    nodeId: string;
+    front: string;
+    back: string;
+    hint?: string;
+    cardType?: string;
+  }) => api.post<Card>('/cards', data),
+
+  update: (
+    id: string,
+    data: {
+      front?: string;
+      back?: string;
+      hint?: string;
+      cardType?: string;
+    }
+  ) => api.patch<Card>(`/cards/${id}`, data),
+
+  delete: (id: string) => api.delete(`/cards/${id}`),
+
+  review: (id: string, rating: number) =>
+    api.post<{ review: any; nextDue: string; updatedCard: Card }>(
+      `/cards/${id}/review`,
+      { rating }
+    ),
+};
+
+// Study API
+export const study = {
+  getSession: (maxCards?: number) =>
+    api.get<StudySession>('/study/session', {
+      params: { max: maxCards },
+    }),
+
+  getStats: () => api.get<StudyStats>('/study/stats'),
+
+  getProgress: (nodeId: string) =>
+    api.get(`/study/progress/${nodeId}`),
+};
+
+export default api;

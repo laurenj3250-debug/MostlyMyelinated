@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  name      String?
+  createdAt DateTime @default(now())
+
+  nodes     Node[]
+  cards     Card[]
+  reviews   Review[]
+}
+
+model Node {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  summary     String?
+  parentId    String?
+  parent      Node?    @relation("NodeHierarchy", fields: [parentId], references: [id])
+  children    Node[]   @relation("NodeHierarchy")
+
+  tags        String[] // Array of tags
+
+  // Computed fields (updated by trigger/function)
+  nodeStrength Float   @default(0)
+  lastReviewed DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  facts       Fact[]
+  images      NodeImage[]
+  cards       Card[]
+
+  @@index([userId, nodeStrength])
+  @@index([userId, parentId])
+}
+
+model Fact {
+  id        String   @id @default(cuid())
+  nodeId    String
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  statement String   // The actual fact text
+  factType  String   // definition, association, localization, comparison, etc.
+  keyTerms  String[] // Extracted key terms
+
+  createdAt DateTime @default(now())
+
+  cards     Card[]
+  images    FactImage[]
+}
+
+model Card {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodeId    String
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  factId    String?
+  fact      Fact?    @relation(fields: [factId], references: [id], onDelete: Cascade)
+
+  front     String
+  back      String
+  hint      String?
+
+  // Card type
+  cardType  String   // basic, reverse, cloze, image_occlusion
+
+  // FSRS scheduling data (stored as JSON)
+  fsrsData  Json     // { due, stability, difficulty, elapsed_days, scheduled_days, reps, lapses, state }
+
+  // Images
+  frontImageId String?
+  backImageId  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reviews   Review[]
+
+  @@index([userId, nodeId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  rating    Int      // 0 = Again, 1 = Hard, 2 = Good, 3 = Easy
+  grade     Float    // 0, 0.4, or 1.0 (for NodeStrength calculation)
+
+  reviewedAt DateTime @default(now())
+
+  @@index([userId, cardId])
+  @@index([reviewedAt])
+}
+
+model NodeImage {
+  id        String   @id @default(cuid())
+  nodeId    String
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  filename  String
+  url       String   // URL or path to image
+  imageType String   // base, annotated, variant
+
+  // Optional: store image data directly in DB (for MVP)
+  imageData Bytes?
+
+  createdAt DateTime @default(now())
+}
+
+model FactImage {
+  id        String   @id @default(cuid())
+  factId    String
+  fact      Fact     @relation(fields: [factId], references: [id], onDelete: Cascade)
+
+  filename  String
+  url       String
+  imageType String
+  imageData Bytes?
+
+  createdAt DateTime @default(now())
+}
