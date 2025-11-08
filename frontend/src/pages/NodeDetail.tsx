@@ -4,6 +4,7 @@ import { nodes, facts as factsApi } from '../services/api';
 import { Node, Fact } from '../types';
 import StrengthBadge from '../components/StrengthBadge';
 import QuickAddBar from '../components/QuickAddBar';
+import AITextExtractor from '../components/AITextExtractor';
 
 export default function NodeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -111,6 +112,11 @@ export default function NodeDetail() {
       {/* Quick Add */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <QuickAddBar onAdd={handleAddFact} isLoading={addingFact} />
+      </div>
+
+      {/* AI Text Extractor */}
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <AITextExtractor nodeId={id!} onExtracted={loadNode} />
       </div>
 
       {/* Facts */}

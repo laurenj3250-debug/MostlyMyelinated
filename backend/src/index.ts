@@ -6,6 +6,7 @@ import nodeRoutes from './routes/nodes';
 import factRoutes from './routes/facts';
 import cardRoutes from './routes/cards';
 import studyRoutes from './routes/study';
+import aiRoutes from './routes/ai';
 import { errorHandler } from './middleware/errorHandler';
 
 // Load environment variables
@@ -29,6 +30,7 @@ app.use('/api/nodes', nodeRoutes);
 app.use('/api/facts', factRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/study', studyRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -41,6 +43,7 @@ app.get('/', (req, res) => {
       facts: '/api/facts',
       cards: '/api/cards',
       study: '/api/study',
+      ai: '/api/ai',
     },
   });
 });
