@@ -47,58 +47,109 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
     setTreeData(tree);
   };
 
-  const getNodeColor = (strength: number) => {
-    if (strength < 20) return 'bg-gray-900 border-gray-900 text-white';
-    if (strength < 40) return 'bg-red-900 border-red-900 text-white';
-    if (strength < 60) return 'bg-red-600 border-red-600 text-white';
-    if (strength < 75) return 'bg-orange-500 border-orange-500 text-white';
-    if (strength < 85) return 'bg-yellow-500 border-yellow-500 text-black';
-    if (strength < 95) return 'bg-green-600 border-green-600 text-white';
-    return 'bg-blue-500 border-blue-500 text-white';
+  const getNodeGradient = (strength: number) => {
+    if (strength < 20) return {
+      gradient: 'from-gray-900 to-gray-800',
+      border: 'border-gray-900',
+      text: 'text-white',
+      glow: ''
+    };
+    if (strength < 40) return {
+      gradient: 'from-red-900 to-red-800',
+      border: 'border-red-900',
+      text: 'text-white',
+      glow: ''
+    };
+    if (strength < 60) return {
+      gradient: 'from-red-600 to-red-500',
+      border: 'border-red-600',
+      text: 'text-white',
+      glow: 'shadow-glow-red'
+    };
+    if (strength < 75) return {
+      gradient: 'from-orange-500 to-yellow-500',
+      border: 'border-orange-500',
+      text: 'text-white',
+      glow: ''
+    };
+    if (strength < 85) return {
+      gradient: 'from-yellow-500 to-green-500',
+      border: 'border-yellow-500',
+      text: 'text-gray-900',
+      glow: ''
+    };
+    if (strength < 95) return {
+      gradient: 'from-green-600 to-green-500',
+      border: 'border-green-600',
+      text: 'text-white',
+      glow: 'shadow-glow-green'
+    };
+    return {
+      gradient: 'from-blue-600 to-cyan-500',
+      border: 'border-blue-500',
+      text: 'text-white',
+      glow: 'shadow-glow-md'
+    };
   };
 
   const renderNode = (treeNode: TreeNode) => {
     const { node, children, depth } = treeNode;
     const hasChildren = children.length > 0;
+    const colorScheme = getNodeGradient(node.nodeStrength);
 
     return (
-      <div key={node.id} className="mb-4">
+      <div key={node.id} className="mb-4 animate-slide-in">
         {/* Node Card */}
         <div
-          className={`flex items-center gap-2`}
-          style={{ marginLeft: `${depth * 2}rem` }}
+          className={`flex items-center gap-3`}
+          style={{ marginLeft: `${depth * 2.5}rem` }}
         >
           {/* Connection line */}
           {depth > 0 && (
-            <div className="w-8 h-0.5 bg-gray-300"></div>
+            <div className={`w-10 h-1 rounded-full bg-gradient-to-r ${colorScheme.gradient} opacity-50`}></div>
           )}
 
           {/* Node */}
           <div
             onClick={() => navigate(`/nodes/${node.id}`)}
-            className={`flex-1 p-4 rounded-lg border-2 cursor-pointer hover:shadow-lg transition-all ${getNodeColor(
-              node.nodeStrength
-            )}`}
+            className={`flex-1 p-5 rounded-2xl border-2 cursor-pointer
+                       bg-gradient-to-r ${colorScheme.gradient} ${colorScheme.border} ${colorScheme.text}
+                       hover:shadow-2xl hover:-translate-y-1 transition-all duration-300
+                       ${colorScheme.glow}
+                       ${node.nodeStrength < 60 ? 'animate-pulse-glow' : ''}
+                       group`}
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h3 className="font-bold text-lg mb-1">{node.name}</h3>
-                <div className="text-sm opacity-90">
-                  {node._count?.cards || 0} cards • {node.nodeStrength}%
+                <h3 className="font-bold text-xl mb-2 group-hover:scale-105 transition-transform">
+                  {node.name}
+                </h3>
+                <div className="flex items-center gap-4 text-sm opacity-90 font-medium">
+                  <span>{node._count?.cards || 0} cards</span>
+                  <span>•</span>
+                  <span className="font-bold">{node.nodeStrength}%</span>
                 </div>
               </div>
               {node.strengthLabel && (
-                <div className="text-2xl">
+                <div className="text-4xl group-hover:scale-110 transition-transform">
                   {node.strengthLabel.emoji}
                 </div>
               )}
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-3 h-2 bg-black/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white/80 transition-all duration-500"
+                style={{ width: `${node.nodeStrength}%` }}
+              />
             </div>
           </div>
         </div>
 
         {/* Render children */}
         {hasChildren && (
-          <div className="mt-2">
+          <div className="mt-3 ml-4 border-l-2 border-gray-300 pl-2">
             {children.map((child) => renderNode(child))}
           </div>
         )}
@@ -123,15 +174,15 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="card bg-blue-50 border-2 border-blue-300">
-        <h3 className="font-bold text-lg mb-2">Knowledge Tree</h3>
-        <p className="text-sm text-gray-600">
-          Click any node to view details. Colors indicate mastery level.
+    <div className="space-y-6">
+      <div className="card-gradient bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+        <h3 className="font-bold text-2xl mb-3 text-gradient-blue">Knowledge Tree</h3>
+        <p className="text-gray-600 leading-relaxed">
+          Click any node to view details. Colors represent mastery levels - from weak (red) to mastered (blue).
         </p>
       </div>
 
-      <div className="bg-white rounded-lg p-6">
+      <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
         {treeData.map((root) => renderNode(root))}
       </div>
     </div>

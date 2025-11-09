@@ -86,68 +86,109 @@ export default function Dashboard() {
   const weakestNodes = [...nodeList].sort((a, b) => a.nodeStrength - b.nodeStrength).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen page-enter">
+      {/* Header with gradient */}
+      <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">
-              MostlyMyelinated
-            </h1>
-            <div className="flex gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+                MostlyMyelinated
+              </h1>
+              <p className="text-blue-100 mt-2 text-sm md:text-base">
+                Neuro-gamified spaced repetition system
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate('/import')}
+                className="btn bg-purple-600 text-white hover:bg-purple-700 shadow-lg hover:shadow-xl
+                          hidden md:flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span>Import Textbook</span>
+              </button>
               <button
                 onClick={() => navigate('/study')}
-                className="btn btn-primary"
+                className="btn bg-white text-blue-700 hover:bg-blue-50 shadow-lg hover:shadow-xl
+                          disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!stats || stats.dueCount === 0}
               >
-                Study ({stats?.dueCount || 0} due)
+                <span className="hidden sm:inline">Study Now</span>
+                <span className="sm:hidden">Study</span>
+                <span className="ml-2 bg-blue-700 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+                  {stats?.dueCount || 0}
+                </span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Overall Neuro Score */}
+      {/* Overall Neuro Score - Hero Section */}
       {overallScore !== null && (
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="card bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
-            <h2 className="text-xl font-bold mb-3">Overall Neurologic Status</h2>
-            <div className="flex items-center gap-4">
-              <NeuroLabel
-                strength={overallScore}
-                label={getOverallLabel(overallScore).label}
-                emoji={getOverallLabel(overallScore).emoji}
-                size="lg"
-              />
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50 to-purple-50
+                          rounded-3xl shadow-2xl p-8 md:p-12 border-2 border-blue-100
+                          transform transition-all duration-500 hover:scale-[1.01]">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply
+                            filter blur-3xl opacity-10 animate-float" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply
+                            filter blur-3xl opacity-10 animate-float" style={{ animationDelay: '1s' }} />
+
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6 tracking-tight">
+                Overall Neurologic Status
+              </h2>
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                <div className="flex-shrink-0">
+                  <NeuroLabel
+                    strength={overallScore}
+                    label={getOverallLabel(overallScore).label}
+                    emoji={getOverallLabel(overallScore).emoji}
+                    size="lg"
+                  />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <div className="text-6xl md:text-8xl font-black text-gradient-blue mb-2">
+                    {overallScore}%
+                  </div>
+                  <p className="text-gray-600 text-lg">
+                    Average knowledge strength across {nodeList.length} nodes
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Stats */}
+      {/* Stats Cards */}
       {stats && (
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="card">
-              <div className="text-sm text-gray-600">Total Cards</div>
-              <div className="text-3xl font-bold">{stats.totalCards}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="stat-card animate-slide-in" style={{ animationDelay: '0.1s' }}>
+              <div className="stat-label">Total Cards</div>
+              <div className="stat-value text-blue-600">{stats.totalCards}</div>
             </div>
-            <div className="card">
-              <div className="text-sm text-gray-600">Due Today</div>
-              <div className="text-3xl font-bold text-red-600">
+            <div className="stat-card animate-slide-in" style={{ animationDelay: '0.2s' }}>
+              <div className="stat-label">Due Today</div>
+              <div className={`stat-value ${stats.dueCount > 0 ? 'text-gradient-red' : 'text-gray-400'}`}>
                 {stats.dueCount}
               </div>
             </div>
-            <div className="card">
-              <div className="text-sm text-gray-600">Reviewed Today</div>
-              <div className="text-3xl font-bold text-green-600">
-                {stats.reviewsToday}
-              </div>
+            <div className="stat-card animate-slide-in" style={{ animationDelay: '0.3s' }}>
+              <div className="stat-label">Reviewed Today</div>
+              <div className="stat-value text-gradient-green">{stats.reviewsToday}</div>
             </div>
-            <div className="card">
-              <div className="text-sm text-gray-600">Day Streak</div>
-              <div className="text-3xl font-bold text-blue-600">
+            <div className="stat-card animate-slide-in" style={{ animationDelay: '0.4s' }}>
+              <div className="stat-label">Day Streak</div>
+              <div className="stat-value text-gradient-blue">
                 {stats.streak}
+                {stats.streak > 0 && <span className="text-2xl ml-2">🔥</span>}
               </div>
             </div>
           </div>
@@ -157,23 +198,36 @@ export default function Dashboard() {
       {/* Top 3 Strongest & Bottom 3 Weakest */}
       {nodeList.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Strongest Nodes */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4 text-green-700">Top 3 Strongest Nodes</h2>
-              <div className="space-y-3">
+            <div className="animate-slide-in" style={{ animationDelay: '0.5s' }}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-blue-500 rounded-full" />
+                <h2 className="text-2xl md:text-3xl font-bold text-gradient-green">
+                  Top 3 Strongest Nodes
+                </h2>
+              </div>
+              <div className="space-y-4">
                 {strongestNodes.map((node, index) => (
                   <div
                     key={node.id}
-                    className="card bg-green-50 border-2 border-green-300 cursor-pointer hover:shadow-lg transition-shadow"
+                    className="relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50
+                              rounded-2xl shadow-lg p-6 cursor-pointer
+                              transition-all duration-300 hover:shadow-2xl hover:-translate-y-1
+                              border-2 border-green-200 group"
                     onClick={() => navigate(`/nodes/${node.id}`)}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-green-400 rounded-full
+                                    mix-blend-multiply filter blur-2xl opacity-20" />
+                    <div className="relative flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600
+                                      rounded-xl flex items-center justify-center shadow-lg">
+                        <span className="text-2xl font-black text-white">#{index + 1}</span>
+                      </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xl font-bold text-green-700">#{index + 1}</span>
-                          <h3 className="font-bold text-lg">{node.name}</h3>
-                        </div>
+                        <h3 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-green-700 transition-colors">
+                          {node.name}
+                        </h3>
                         {node.strengthLabel && (
                           <NeuroLabel
                             strength={node.strengthLabel.strength}
@@ -190,21 +244,35 @@ export default function Dashboard() {
             </div>
 
             {/* Weakest Nodes */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4 text-red-700">Bottom 3 Weakest Nodes</h2>
-              <div className="space-y-3">
+            <div className="animate-slide-in" style={{ animationDelay: '0.6s' }}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-red-500 to-pink-500 rounded-full" />
+                <h2 className="text-2xl md:text-3xl font-bold text-gradient-red">
+                  Bottom 3 Weakest Nodes
+                </h2>
+              </div>
+              <div className="space-y-4">
                 {weakestNodes.map((node, index) => (
                   <div key={node.id}>
                     <div
-                      className="card bg-red-50 border-2 border-red-300 cursor-pointer hover:shadow-lg transition-shadow"
+                      className={`relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50
+                                rounded-2xl shadow-lg p-6 cursor-pointer
+                                transition-all duration-300 hover:shadow-2xl hover:-translate-y-1
+                                border-2 border-red-200 group
+                                ${node.nodeStrength < 40 ? 'ring-2 ring-red-400 ring-opacity-50 animate-pulse-glow' : ''}`}
                       onClick={() => navigate(`/nodes/${node.id}`)}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-red-400 rounded-full
+                                      mix-blend-multiply filter blur-2xl opacity-20" />
+                      <div className="relative flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600
+                                        rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-2xl font-black text-white">#{index + 1}</span>
+                        </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl font-bold text-red-700">#{index + 1}</span>
-                            <h3 className="font-bold text-lg">{node.name}</h3>
-                          </div>
+                          <h3 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
+                            {node.name}
+                          </h3>
                           {node.strengthLabel && (
                             <NeuroLabel
                               strength={node.strengthLabel.strength}
@@ -229,9 +297,15 @@ export default function Dashboard() {
               {weakestNodes.some(n => n.nodeStrength < 60) && (
                 <button
                   onClick={() => navigate('/study?mode=disasters')}
-                  className="mt-4 w-full btn bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg"
+                  className="mt-6 w-full btn bg-gradient-to-r from-red-600 to-pink-600 text-white
+                            font-bold py-4 px-8 rounded-xl shadow-xl
+                            hover:from-red-700 hover:to-pink-700
+                            transform hover:scale-105 active:scale-95
+                            transition-all duration-200
+                            ring-4 ring-red-200 ring-opacity-50
+                            animate-pulse-glow"
                 >
-                  Fix My Disasters
+                  <span className="text-lg">Fix My Disasters</span>
                 </button>
               )}
             </div>

@@ -91,11 +91,12 @@ export default function Study() {
 
   if (session.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="card text-center">
-          <h2 className="text-2xl font-bold mb-4">No cards due!</h2>
-          <p className="text-gray-600 mb-6">
-            You're all caught up. Come back later!
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+        <div className="card-gradient text-center max-w-md animate-scale-in">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-3xl font-bold mb-4 text-gradient-green">All Caught Up!</h2>
+          <p className="text-gray-600 mb-6 text-lg">
+            No cards due right now. Your neurons are well-myelinated!
           </p>
           <button onClick={() => navigate('/')} className="btn btn-primary">
             Back to Dashboard
@@ -109,10 +110,14 @@ export default function Study() {
   const progress = ((currentIndex + 1) / session.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       {/* Header */}
-      <header className={`shadow-sm ${mode === 'disasters' ? 'bg-red-100' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+      <header className={`shadow-xl ${
+        mode === 'disasters'
+          ? 'bg-gradient-to-r from-red-600 to-pink-600'
+          : 'bg-gradient-to-r from-blue-600 to-purple-600'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <button
               onClick={() => {
@@ -120,30 +125,35 @@ export default function Study() {
                   navigate('/');
                 }
               }}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-white hover:bg-white/20 px-4 py-2 rounded-lg font-semibold
+                        transition-all duration-200 flex items-center gap-2"
             >
-              ← Quit
+              <span>←</span> Quit
             </button>
             <div className="text-center flex-1">
               {mode === 'disasters' && (
-                <div className="text-sm font-bold text-red-700 mb-1">
-                  DISASTER MODE: Weak Nodes Only
+                <div className="text-sm font-bold text-white/90 mb-2 animate-pulse">
+                  🚨 DISASTER MODE: Weak Nodes Only
                 </div>
               )}
-              <div className="text-lg font-semibold">
-                {currentIndex + 1} / {session.length}
+              <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                {currentIndex + 1} <span className="text-white/70">/</span> {session.length}
               </div>
-              <div className="text-sm text-gray-600">
-                {sessionStats.reviewed} reviewed
+              <div className="text-sm text-white/80 font-medium">
+                {sessionStats.reviewed} cards reviewed
               </div>
             </div>
             <div className="w-20"></div>
           </div>
 
           {/* Progress bar */}
-          <div className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="mt-6 h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur">
             <div
-              className="h-full bg-blue-600 transition-all duration-300"
+              className={`h-full ${
+                mode === 'disasters'
+                  ? 'bg-gradient-to-r from-yellow-400 to-green-400'
+                  : 'bg-gradient-to-r from-green-400 to-blue-400'
+              } transition-all duration-500 shadow-lg`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -156,13 +166,25 @@ export default function Study() {
       </div>
 
       {/* Stats footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t py-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t-2 border-gray-100 py-4 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center gap-6 text-sm">
-            <span className="text-red-600">Again: {sessionStats.again}</span>
-            <span className="text-orange-600">Hard: {sessionStats.hard}</span>
-            <span className="text-green-600">Good: {sessionStats.good}</span>
-            <span className="text-blue-600">Easy: {sessionStats.easy}</span>
+          <div className="flex justify-center gap-6 md:gap-8 text-sm md:text-base font-semibold">
+            <div className="flex flex-col items-center">
+              <span className="text-red-600 text-xl md:text-2xl font-bold">{sessionStats.again}</span>
+              <span className="text-gray-600 text-xs">Again</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-orange-600 text-xl md:text-2xl font-bold">{sessionStats.hard}</span>
+              <span className="text-gray-600 text-xs">Hard</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-green-600 text-xl md:text-2xl font-bold">{sessionStats.good}</span>
+              <span className="text-gray-600 text-xs">Good</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-blue-600 text-xl md:text-2xl font-bold">{sessionStats.easy}</span>
+              <span className="text-gray-600 text-xs">Easy</span>
+            </div>
           </div>
         </div>
       </div>

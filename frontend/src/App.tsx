@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NodeDetail from './pages/NodeDetail';
 import Study from './pages/Study';
+import TextbookImporter from './pages/TextbookImporter';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -35,6 +36,14 @@ function App() {
           element={
             <PrivateRoute>
               <Study />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/import"
+          element={
+            <PrivateRoute>
+              <TextbookImporter />
             </PrivateRoute>
           }
         />
