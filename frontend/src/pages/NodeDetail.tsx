@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { nodes, facts as factsApi } from '../services/api';
+import { nodes, facts as factsApi, images as imagesApi } from '../services/api';
 import { Node, Fact } from '../types';
 import StrengthBadge from '../components/StrengthBadge';
 import QuickAddBar from '../components/QuickAddBar';
 import AITextExtractor from '../components/AITextExtractor';
+import CardPreviewModal from '../components/CardPreviewModal';
+import ImageUploader from '../components/ImageUploader';
 
 export default function NodeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +15,11 @@ export default function NodeDetail() {
   const [nodeFacts, setNodeFacts] = useState<Fact[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingFact, setAddingFact] = useState(false);
+  const [previewCards, setPreviewCards] = useState<any[]>([]);
+  const [previewFactId, setPreviewFactId] = useState<string | null>(null);
+  const [previewFactStatement, setPreviewFactStatement] = useState<string>('');
+  const [nodeImages, setNodeImages] = useState<any[]>([]);
+  const [showImages, setShowImages] = useState(false);
 
   useEffect(() => {
     if (id) loadNode();
@@ -20,9 +27,13 @@ export default function NodeDetail() {
 
   const loadNode = async () => {
     try {
-      const res = await nodes.get(id!);
-      setNode(res.data as any);
-      setNodeFacts((res.data as any).facts || []);
+      const [nodeRes, imagesRes] = await Promise.all([
+        nodes.get(id!),
+        imagesApi.getNodeImages(id!),
+      ]);
+      setNode(nodeRes.data as any);
+      setNodeFacts((nodeRes.data as any).facts || []);
+      setNodeImages(imagesRes.data as any);
     } catch (error) {
       console.error('Failed to load node:', error);
       alert('Failed to load node');
@@ -42,17 +53,52 @@ export default function NodeDetail() {
         factType,
       });
 
-      // Generate cards from fact
-      await factsApi.generateCards(factRes.data.id);
-
-      // Reload node
-      await loadNode();
+      // Preview cards before saving
+      const previewRes = await factsApi.previewCards(factRes.data.id);
+      setPreviewCards(previewRes.data.templates);
+      setPreviewFactId(factRes.data.id);
+      setPreviewFactStatement(statement);
     } catch (error) {
       console.error('Failed to add fact:', error);
       alert('Failed to add fact');
     } finally {
       setAddingFact(false);
     }
+  };
+
+  const handleSaveCards = async (cards: any[]) => {
+    if (!previewFactId) return;
+
+    try {
+      // Generate cards with edited templates
+      await factsApi.generateCards(previewFactId, cards);
+
+      // Close modal and reset
+      setPreviewCards([]);
+      setPreviewFactId(null);
+      setPreviewFactStatement('');
+
+      // Reload node
+      await loadNode();
+    } catch (error) {
+      console.error('Failed to save cards:', error);
+      alert('Failed to save cards');
+    }
+  };
+
+  const handleClosePreview = async () => {
+    // If user closes without saving, delete the fact
+    if (previewFactId) {
+      try {
+        await factsApi.delete(previewFactId);
+      } catch (error) {
+        console.error('Failed to delete fact:', error);
+      }
+    }
+
+    setPreviewCards([]);
+    setPreviewFactId(null);
+    setPreviewFactStatement('');
   };
 
   const handleDeleteFact = async (factId: string) => {
@@ -64,6 +110,42 @@ export default function NodeDetail() {
     } catch (error) {
       console.error('Failed to delete fact:', error);
       alert('Failed to delete fact');
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      await imagesApi.uploadNodeImage(id!, file);
+      // Reload images
+      const imagesRes = await imagesApi.getNodeImages(id!);
+      setNodeImages(imagesRes.data as any);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      throw error;
+    }
+  };
+
+  const handleImageDelete = async (imageId: string) => {
+    try {
+      await imagesApi.deleteNodeImage(imageId);
+      // Reload images
+      const imagesRes = await imagesApi.getNodeImages(id!);
+      setNodeImages(imagesRes.data as any);
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      throw error;
+    }
+  };
+
+  const handleImageAnnotate = async (imageId: string, annotatedDataUrl: string) => {
+    try {
+      await imagesApi.saveAnnotated(imageId, annotatedDataUrl);
+      // Reload images
+      const imagesRes = await imagesApi.getNodeImages(id!);
+      setNodeImages(imagesRes.data as any);
+    } catch (error) {
+      console.error('Failed to save annotation:', error);
+      throw error;
     }
   };
 
@@ -119,6 +201,32 @@ export default function NodeDetail() {
         <AITextExtractor nodeId={id!} onExtracted={loadNode} />
       </div>
 
+      {/* Images Section */}
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-4">
+          <button
+            onClick={() => setShowImages(!showImages)}
+            className="text-2xl font-bold hover:text-blue-600 transition-colors flex items-center gap-2"
+          >
+            Images ({nodeImages.length})
+            <span className="text-sm text-gray-500">
+              {showImages ? '▼' : '▶'}
+            </span>
+          </button>
+        </div>
+
+        {showImages && (
+          <div className="card">
+            <ImageUploader
+              onUpload={handleImageUpload}
+              currentImages={nodeImages}
+              onDeleteImage={handleImageDelete}
+              onAnnotate={handleImageAnnotate}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Facts */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold mb-4">
@@ -164,6 +272,15 @@ export default function NodeDetail() {
           </div>
         )}
       </div>
+
+      {/* Card Preview Modal */}
+      <CardPreviewModal
+        isOpen={previewCards.length > 0}
+        onClose={handleClosePreview}
+        cards={previewCards}
+        onSave={handleSaveCards}
+        factStatement={previewFactStatement}
+      />
     </div>
   );
 }

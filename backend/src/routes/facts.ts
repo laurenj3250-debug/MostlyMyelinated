@@ -109,8 +109,8 @@ router.delete('/:id', async (req: AuthRequest, res) => {
   }
 });
 
-// Generate cards from fact
-router.post('/:id/generate-cards', async (req: AuthRequest, res) => {
+// Preview cards from fact (without saving)
+router.post('/:id/preview-cards', async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
 
@@ -136,9 +136,48 @@ router.post('/:id/generate-cards', async (req: AuthRequest, res) => {
       keyTerms: fact.keyTerms,
     });
 
+    res.json({
+      fact,
+      templates,
+      count: templates.length,
+    });
+  } catch (error) {
+    console.error('Preview cards error:', error);
+    res.status(500).json({ error: 'Failed to preview cards' });
+  }
+});
+
+// Generate cards from fact
+router.post('/:id/generate-cards', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { cards: cardTemplates } = req.body; // Optional: allow custom cards
+
+    // Get fact and verify ownership
+    const fact = await prisma.fact.findFirst({
+      where: {
+        id,
+        node: { userId: req.user!.id },
+      },
+      include: {
+        node: true,
+      },
+    });
+
+    if (!fact) {
+      return res.status(404).json({ error: 'Fact not found' });
+    }
+
+    // Use provided templates or generate new ones
+    const templates = cardTemplates || generateCards({
+      statement: fact.statement,
+      factType: fact.factType as any,
+      keyTerms: fact.keyTerms,
+    });
+
     // Create cards in database
     const cards = await Promise.all(
-      templates.map((template) =>
+      templates.map((template: any) =>
         prisma.card.create({
           data: {
             userId: req.user!.id,

@@ -12,4 +12,13 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Ensure service worker and manifest are copied to dist
+    rollupOptions: {
+      input: {
+        main: './index.html',
+      },
+    },
+  },
+  publicDir: 'public',
 });

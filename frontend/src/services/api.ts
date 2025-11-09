@@ -93,9 +93,15 @@ export const facts = {
 
   delete: (id: string) => api.delete(`/facts/${id}`),
 
-  generateCards: (id: string) =>
+  previewCards: (id: string) =>
+    api.post<{ fact: Fact; templates: any[]; count: number }>(
+      `/facts/${id}/preview-cards`
+    ),
+
+  generateCards: (id: string, cards?: any[]) =>
     api.post<{ fact: Fact; cards: Card[]; count: number }>(
-      `/facts/${id}/generate-cards`
+      `/facts/${id}/generate-cards`,
+      { cards }
     ),
 };
 
@@ -141,6 +147,48 @@ export const study = {
 
   getProgress: (nodeId: string) =>
     api.get(`/study/progress/${nodeId}`),
+};
+
+// Images API
+export const images = {
+  uploadNodeImage: (nodeId: string, file: File, imageType?: string) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (imageType) formData.append('imageType', imageType);
+
+    return api.post(`/images/node/${nodeId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  uploadFactImage: (factId: string, file: File, imageType?: string) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (imageType) formData.append('imageType', imageType);
+
+    return api.post(`/images/fact/${factId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  getNodeImages: (nodeId: string) =>
+    api.get(`/images/node/${nodeId}`),
+
+  getFactImages: (factId: string) =>
+    api.get(`/images/fact/${factId}`),
+
+  deleteNodeImage: (imageId: string) =>
+    api.delete(`/images/node/${imageId}`),
+
+  deleteFactImage: (imageId: string) =>
+    api.delete(`/images/fact/${imageId}`),
+
+  saveAnnotated: (imageId: string, annotationData: string) =>
+    api.post(`/images/annotate/${imageId}`, { annotationData }),
 };
 
 export default api;

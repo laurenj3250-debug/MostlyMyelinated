@@ -4,13 +4,25 @@ A spaced repetition system (SRS) for veterinary neurology built on Railway with 
 
 ## Features
 
+### Core Learning Features
 - **Node-based organization**: Organize knowledge hierarchically
 - **Automatic card generation**: Smart templates create multiple cards from facts
+- **Card preview/edit**: Review and edit generated cards before saving
 - **FSRS scheduling**: State-of-the-art spaced repetition algorithm
 - **NodeStrength tracking**: Visual progress indicators for each topic
 - **Weighted review**: Prioritizes weaker topics automatically
 - **Quick-add bar**: Rapid fact entry with type detection
-- **PWA-ready**: Install as mobile app
+
+### Visual Learning
+- **Image upload**: Drag and drop images to nodes and facts
+- **Image annotation**: Draw arrows, highlights, and text labels on images
+- **Image compression**: Automatic optimization for storage efficiency
+
+### Mobile & PWA
+- **Progressive Web App**: Install as standalone app on mobile and desktop
+- **Offline support**: Service worker enables offline access to cached content
+- **Mobile-optimized**: Touch-friendly interface with responsive design
+- **Cross-platform**: Works on iOS, Android, and desktop browsers
 
 ## Tech Stack
 
@@ -21,6 +33,8 @@ A spaced repetition system (SRS) for veterinary neurology built on Railway with 
 - Prisma ORM
 - ts-fsrs (FSRS algorithm)
 - JWT authentication
+- Multer (file uploads)
+- Sharp (image processing)
 
 ### Frontend
 - React 18
@@ -242,7 +256,8 @@ Dashboard → View nodes sorted by strength
 - `POST /api/facts` - Create fact
 - `PATCH /api/facts/:id` - Update fact
 - `DELETE /api/facts/:id` - Delete fact
-- `POST /api/facts/:id/generate-cards` - Generate cards from fact
+- `POST /api/facts/:id/preview-cards` - Preview generated cards (no save)
+- `POST /api/facts/:id/generate-cards` - Generate and save cards from fact
 
 ### Cards
 - `GET /api/cards/:id` - Get card
@@ -255,6 +270,15 @@ Dashboard → View nodes sorted by strength
 - `GET /api/study/session?max=80` - Get weighted review session
 - `GET /api/study/stats` - Get study statistics
 - `GET /api/study/progress/:nodeId` - Get node progress over time
+
+### Images
+- `POST /api/images/node/:nodeId` - Upload image to node
+- `POST /api/images/fact/:factId` - Upload image to fact
+- `GET /api/images/node/:nodeId` - Get all node images
+- `GET /api/images/fact/:factId` - Get all fact images
+- `DELETE /api/images/node/:imageId` - Delete node image
+- `DELETE /api/images/fact/:imageId` - Delete fact image
+- `POST /api/images/annotate/:imageId` - Save annotated image
 
 ## Database Schema
 
@@ -270,28 +294,43 @@ See `backend/prisma/schema.prisma` for full schema.
 
 ## Development Roadmap
 
-### MVP (Current)
+### MVP (Completed)
 - ✅ Core SRS with FSRS
 - ✅ Node hierarchy
 - ✅ NodeStrength calculation
 - ✅ Weighted review selection
 - ✅ Card generation templates
-- ✅ Basic UI
+- ✅ Card preview/edit before save
+- ✅ Image upload and annotation
+- ✅ Image compression and optimization
+- ✅ Mobile PWA support
+- ✅ Offline caching
+- ✅ Responsive UI
 
 ### Phase 2
-- [ ] Image upload and annotation
 - [ ] Image occlusion cards
+- [ ] Cloud storage for images (S3/R2)
 - [ ] Parent/child node relationships UI
 - [ ] Advanced stats and charts
 - [ ] CSV import/export
-- [ ] Mobile PWA optimizations
+- [ ] Offline study review queue
+- [ ] Automated testing
 
 ### Phase 3
 - [ ] Shared decks
 - [ ] Collaborative editing
-- [ ] AI-assisted card generation
+- [ ] Enhanced AI features
 - [ ] Voice input
-- [ ] Offline support
+- [ ] Desktop app (Electron)
+- [ ] Performance optimizations
+
+## Documentation
+
+- **[COMPLETE_SETUP_GUIDE.md](./COMPLETE_SETUP_GUIDE.md)** - Detailed setup instructions for development
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Railway deployment guide with troubleshooting
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Step-by-step testing for all features
+- **[MVP_IMPLEMENTATION_SUMMARY.md](./MVP_IMPLEMENTATION_SUMMARY.md)** - Implementation details and architecture
+- **[AI_INTEGRATION_GUIDE.md](./AI_INTEGRATION_GUIDE.md)** - AI features and Claude integration
 
 ## Contributing
 

@@ -8,6 +8,7 @@ import factRoutes from './routes/facts';
 import cardRoutes from './routes/cards';
 import studyRoutes from './routes/study';
 import aiRoutes from './routes/ai';
+import imageRoutes from './routes/images';
 import { errorHandler } from './middleware/errorHandler';
 
 // Load environment variables
@@ -32,6 +33,7 @@ app.use('/api/facts', factRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/images', imageRoutes);
 
 // Serve static files (frontend)
 app.use(express.static(path.join(__dirname, '../public')));
@@ -48,6 +50,7 @@ app.get('/api', (req, res) => {
       cards: '/api/cards',
       study: '/api/study',
       ai: '/api/ai',
+      images: '/api/images',
     },
   });
 });
