@@ -47,58 +47,72 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
     setTreeData(tree);
   };
 
-  const getNodeGradient = (strength: number) => {
+  const getNodeStyle = (strength: number) => {
+    // Critical - Brain-dead
     if (strength < 20) return {
-      gradient: 'from-gray-900 to-gray-800',
-      border: 'border-gray-900',
-      text: 'text-white',
-      glow: ''
+      bg: 'bg-lab-bg-card',
+      border: 'border-purple-600',
+      text: 'text-lab-text-primary',
+      glow: 'shadow-glow-alert',
+      alert: true
     };
+    // Weak - LMN tetraplegic
     if (strength < 40) return {
-      gradient: 'from-red-900 to-red-800',
-      border: 'border-red-900',
-      text: 'text-white',
-      glow: ''
+      bg: 'bg-lab-bg-card',
+      border: 'border-blue-600',
+      text: 'text-lab-text-primary',
+      glow: 'shadow-glow-alert',
+      alert: true
     };
+    // Moderate - Non-ambulatory ataxic
     if (strength < 60) return {
-      gradient: 'from-red-600 to-red-500',
-      border: 'border-red-600',
-      text: 'text-white',
-      glow: 'shadow-glow-red'
+      bg: 'bg-lab-bg-card',
+      border: 'border-teal-500',
+      text: 'text-lab-text-primary',
+      glow: '',
+      alert: false
     };
+    // Good - Ambulatory ataxic
     if (strength < 75) return {
-      gradient: 'from-orange-500 to-yellow-500',
+      bg: 'bg-lab-bg-card',
       border: 'border-orange-500',
-      text: 'text-white',
-      glow: ''
+      text: 'text-lab-text-primary',
+      glow: '',
+      alert: false
     };
+    // Strong - Mild paresis
     if (strength < 85) return {
-      gradient: 'from-yellow-500 to-green-500',
+      bg: 'bg-lab-bg-card',
       border: 'border-yellow-500',
-      text: 'text-gray-900',
-      glow: ''
+      text: 'text-lab-text-primary',
+      glow: '',
+      alert: false
     };
+    // Very Strong - BAR
     if (strength < 95) return {
-      gradient: 'from-green-600 to-green-500',
-      border: 'border-green-600',
-      text: 'text-white',
-      glow: 'shadow-glow-green'
+      bg: 'bg-lab-bg-card',
+      border: 'border-green-500',
+      text: 'text-lab-text-primary',
+      glow: 'shadow-glow-mint',
+      alert: false
     };
+    // Mastered - Hyperreflexic
     return {
-      gradient: 'from-blue-600 to-cyan-500',
-      border: 'border-blue-500',
-      text: 'text-white',
-      glow: 'shadow-glow-md'
+      bg: 'bg-lab-bg-card',
+      border: 'border-lab-cyan',
+      text: 'text-lab-text-primary',
+      glow: 'shadow-glow-cyan',
+      alert: false
     };
   };
 
   const renderNode = (treeNode: TreeNode) => {
     const { node, children, depth } = treeNode;
     const hasChildren = children.length > 0;
-    const colorScheme = getNodeGradient(node.nodeStrength);
+    const style = getNodeStyle(node.nodeStrength);
 
     return (
-      <div key={node.id} className="mb-4 animate-slide-in">
+      <div key={node.id} className="mb-4 animate-fade-in">
         {/* Node Card */}
         <div
           className={`flex items-center gap-3`}
@@ -106,41 +120,43 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
         >
           {/* Connection line */}
           {depth > 0 && (
-            <div className={`w-10 h-1 rounded-full bg-gradient-to-r ${colorScheme.gradient} opacity-50`}></div>
+            <div className={`w-10 h-0.5 ${style.border} opacity-50`}></div>
           )}
 
           {/* Node */}
           <div
             onClick={() => navigate(`/nodes/${node.id}`)}
-            className={`flex-1 p-5 rounded-2xl border-2 cursor-pointer
-                       bg-gradient-to-r ${colorScheme.gradient} ${colorScheme.border} ${colorScheme.text}
-                       hover:shadow-2xl hover:-translate-y-1 transition-all duration-300
-                       ${colorScheme.glow}
-                       ${node.nodeStrength < 60 ? 'animate-pulse-glow' : ''}
+            className={`flex-1 p-4 border-2 cursor-pointer
+                       ${style.bg} ${style.border} ${style.text}
+                       hover:border-lab-cyan hover:shadow-glow-sm hover:translate-x-1
+                       transition-all duration-300
+                       ${style.glow}
+                       ${style.alert ? 'animate-pulse-glow' : ''}
                        group`}
+            style={{ borderRadius: '2px' }}
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h3 className="font-bold text-xl mb-2 group-hover:scale-105 transition-transform">
+                <h3 className="font-mono font-bold text-lg mb-2 uppercase tracking-wide group-hover:text-lab-cyan transition-colors">
                   {node.name}
                 </h3>
-                <div className="flex items-center gap-4 text-sm opacity-90 font-medium">
-                  <span>{node._count?.cards || 0} cards</span>
+                <div className="flex items-center gap-4 text-xs font-mono text-lab-text-secondary">
+                  <span>{node._count?.cards || 0} CARDS</span>
                   <span>•</span>
-                  <span className="font-bold">{node.nodeStrength}%</span>
+                  <span className="font-bold text-lab-cyan">{node.nodeStrength.toFixed(1)}%</span>
                 </div>
               </div>
               {node.strengthLabel && (
-                <div className="text-4xl group-hover:scale-110 transition-transform">
+                <div className="text-3xl group-hover:scale-110 transition-transform">
                   {node.strengthLabel.emoji}
                 </div>
               )}
             </div>
 
-            {/* Progress bar */}
-            <div className="mt-3 h-2 bg-black/20 rounded-full overflow-hidden">
+            {/* Progress bar - Mini heat map style */}
+            <div className="mt-3 h-1.5 bg-black border border-lab-cyan/20 overflow-hidden relative">
               <div
-                className="h-full bg-white/80 transition-all duration-500"
+                className="h-full heatmap-good transition-all duration-500"
                 style={{ width: `${node.nodeStrength}%` }}
               />
             </div>
@@ -149,7 +165,7 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
 
         {/* Render children */}
         {hasChildren && (
-          <div className="mt-3 ml-4 border-l-2 border-gray-300 pl-2">
+          <div className="mt-3 ml-4 border-l border-lab-cyan/30 pl-2">
             {children.map((child) => renderNode(child))}
           </div>
         )}
@@ -159,30 +175,30 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
 
   if (nodes.length === 0) {
     return (
-      <div className="card text-center py-12">
-        <p className="text-gray-600">No nodes yet. Create some to see the skill tree!</p>
+      <div className="bg-lab-bg-card border border-lab-border p-12 text-center" style={{ borderRadius: '2px' }}>
+        <p className="font-mono text-lab-text-secondary">NO NODES AVAILABLE FOR TREE VIEW</p>
       </div>
     );
   }
 
   if (treeData.length === 0) {
     return (
-      <div className="card text-center py-12">
-        <p className="text-gray-600">Building skill tree...</p>
+      <div className="bg-lab-bg-card border border-lab-border p-12 text-center" style={{ borderRadius: '2px' }}>
+        <p className="font-mono text-lab-text-secondary">BUILDING NEURAL TREE STRUCTURE...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card-gradient bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
-        <h3 className="font-bold text-2xl mb-3 text-gradient-blue">Knowledge Tree</h3>
-        <p className="text-gray-600 leading-relaxed">
-          Click any node to view details. Colors represent mastery levels - from weak (red) to mastered (blue).
+    <div className="space-y-4">
+      <div className="bg-black border border-lab-cyan/30 p-4" style={{ borderRadius: '2px' }}>
+        <h3 className="font-mono font-bold text-sm mb-2 text-lab-cyan uppercase tracking-wider">NEURAL HIERARCHY VIEW</h3>
+        <p className="font-mono text-xs text-lab-text-secondary leading-relaxed">
+          Hierarchical node structure. Colors indicate strength: Purple/Blue (critical) → Teal (moderate) → Orange/Yellow (strong) → Green/Cyan (mastered).
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+      <div className="bg-lab-bg-card border border-lab-border p-6" style={{ borderRadius: '2px' }}>
         {treeData.map((root) => renderNode(root))}
       </div>
     </div>

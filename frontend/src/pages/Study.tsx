@@ -113,6 +113,32 @@ export default function Study() {
   }
 
   if (session.length === 0) {
+    // Different empty state for weak-drill mode
+    if (mode === 'weak-drill') {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-lab-background">
+          <div className="bg-black border-2 border-lab-mint/50 p-8 text-center max-w-md" style={{ borderRadius: '2px' }}>
+            <div className="text-6xl mb-4">✓</div>
+            <h2 className="text-2xl font-mono uppercase text-lab-mint mb-4">NO CRITICAL NODES DETECTED</h2>
+            <p className="text-lg font-mono text-lab-text-primary mb-2">
+              All nodes are functioning above the 40% intervention threshold.
+            </p>
+            <p className="text-sm font-mono text-lab-text-tertiary mb-6">
+              Neural integrity status: STABLE
+            </p>
+            <button
+              onClick={() => navigate('/')}
+              className="px-6 py-3 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all"
+              style={{ borderRadius: '2px' }}
+            >
+              RETURN TO DASHBOARD
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Default empty state for normal/other modes
     return (
       <div className="flex items-center justify-center min-h-screen bg-lab-background">
         <div className="bg-black border-2 border-lab-mint/50 p-8 text-center max-w-md" style={{ borderRadius: '2px' }}>

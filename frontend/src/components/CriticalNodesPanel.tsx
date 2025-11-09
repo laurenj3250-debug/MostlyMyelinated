@@ -81,14 +81,14 @@ export default function CriticalNodesPanel({ nodes, totalNodes }: CriticalNodesP
           >
             <div className="flex items-start gap-4">
               {/* Rank Number */}
-              <div className="text-3xl font-mono text-lab-text-tertiary font-bold">
+              <div className="text-2xl sm:text-3xl font-mono text-lab-text-tertiary font-bold">
                 {index + 1}
               </div>
 
               {/* Content */}
               <div className="flex-1">
                 {/* Node Name */}
-                <h4 className="text-xl font-mono uppercase text-lab-text-primary mb-2">
+                <h4 className="text-lg sm:text-xl font-mono uppercase text-lab-text-primary mb-2">
                   {node.name}
                 </h4>
 

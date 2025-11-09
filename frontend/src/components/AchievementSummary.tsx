@@ -43,16 +43,16 @@ export default function AchievementSummary({
           TODAY'S ACTIVITY
         </h3>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-lab-card border border-lab-border p-3" style={{ borderRadius: '2px' }}>
             <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">Reviews</div>
             <div className="text-3xl font-mono font-bold text-lab-text-tertiary mb-2">0</div>
-            <ProgressBar current={0} total={reviewsGoal} colorScheme="cyan" size="sm" />
+            <ProgressBar current={0} total={reviewsGoal} colorScheme="cyan" size="small" />
           </div>
           <div className="bg-lab-card border border-lab-border p-3" style={{ borderRadius: '2px' }}>
             <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">New Cards</div>
             <div className="text-3xl font-mono font-bold text-lab-text-tertiary mb-2">0</div>
-            <ProgressBar current={0} total={newCardsGoal} colorScheme="mint" size="sm" />
+            <ProgressBar current={0} total={newCardsGoal} colorScheme="mint" size="small" />
           </div>
           <div className="bg-lab-card border border-lab-border p-3" style={{ borderRadius: '2px' }}>
             <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">XP Gained</div>
@@ -87,7 +87,7 @@ export default function AchievementSummary({
       </h3>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-lab-card border border-lab-border p-3" style={{ borderRadius: '2px' }}>
           <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">Reviews</div>
           <div className="text-3xl font-mono font-bold text-lab-cyan mb-2">
@@ -97,7 +97,7 @@ export default function AchievementSummary({
             current={reviewsToday}
             total={reviewsGoal}
             colorScheme="cyan"
-            size="sm"
+            size="small"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function AchievementSummary({
             current={newCardsToday}
             total={newCardsGoal}
             colorScheme="mint"
-            size="sm"
+            size="small"
           />
         </div>
 

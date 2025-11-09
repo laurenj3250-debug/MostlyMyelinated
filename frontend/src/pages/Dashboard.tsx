@@ -6,6 +6,7 @@ import AchievementSummary from '../components/AchievementSummary';
 import NodeCard from '../components/NodeCard';
 import StreakFlame from '../components/StreakFlame';
 import XPBar from '../components/XPBar';
+import SkillTree from '../components/SkillTree';
 import { nodes as nodesApi, study as studyApi } from '../services/api';
 import type { Node } from '../types';
 
@@ -177,10 +178,12 @@ export default function Dashboard() {
                 + CREATE FIRST NODE
               </button>
             </div>
+          ) : viewMode === 'tree' ? (
+            <SkillTree nodes={allNodes} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {allNodes.map(node => (
-                <NodeCard key={node.id} node={node} />
+                <NodeCard key={node.id} node={node} onClick={() => navigate(`/nodes/${node.id}`)} />
               ))}
             </div>
           )}

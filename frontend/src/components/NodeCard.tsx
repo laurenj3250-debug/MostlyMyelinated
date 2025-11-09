@@ -106,7 +106,7 @@ export default function NodeCard({ node, onClick }: Props) {
           <div className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider mb-2">
             NEURAL STRENGTH
           </div>
-          <HeatMapBar value={node.nodeStrength} height="h-8" />
+          <HeatMapBar strength={node.nodeStrength} size="large" showPercentage={true} />
         </div>
 
         {/* Neuro Label Badge */}
