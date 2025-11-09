@@ -4,7 +4,7 @@ interface ProgressBarProps {
   label?: string;
   showPercentage?: boolean;
   showNumbers?: boolean;
-  colorScheme?: 'purple' | 'green' | 'blue' | 'red' | 'orange' | 'gradient';
+  colorScheme?: 'purple' | 'green' | 'blue' | 'red' | 'orange' | 'cyan' | 'mint' | 'gradient';
   size?: 'small' | 'medium' | 'large';
   animated?: boolean;
 }
@@ -51,6 +51,16 @@ export default function ProgressBar({
       bg: 'bg-orange-900/50',
       fill: 'bg-gradient-to-r from-orange-600 to-orange-400',
       border: 'border-orange-500/30',
+    },
+    cyan: {
+      bg: 'bg-cyan-900/50',
+      fill: 'bg-gradient-to-r from-cyan-600 to-cyan-400',
+      border: 'border-cyan-500/30',
+    },
+    mint: {
+      bg: 'bg-emerald-900/50',
+      fill: 'bg-gradient-to-r from-emerald-600 to-emerald-400',
+      border: 'border-emerald-500/30',
     },
     gradient: {
       bg: 'bg-gray-900/50',

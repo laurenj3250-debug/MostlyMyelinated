@@ -78,6 +78,13 @@ export const nodes = {
       `/nodes/${id}/strength-history`,
       { params: { days } }
     ),
+
+  getCritical: (limit?: number) =>
+    api.get<{ nodes: any[]; totalNodes: number }>('/nodes/critical', {
+      params: { limit }
+    }),
+
+  getAll: () => api.get<Node[]>('/nodes'),
 };
 
 // Facts API
@@ -171,6 +178,25 @@ export const study = {
       `/study/drill-hardest/${nodeId}`,
       { params: { limit } }
     ),
+
+  getNeuroStatus: () =>
+    api.get<{
+      overallScore: number;
+      statusLabel: string;
+      nodeDistribution: any;
+      dueCards: number;
+      newCards: number;
+      weakNodeCount: number;
+      totalNodes: number;
+    }>('/study/neuro-status'),
+
+  getWeakDrill: (threshold?: number, limit?: number) =>
+    api.get<{ cards: any[]; count: number; nodesFocused: any[] }>('/study/weak-drill', {
+      params: { threshold, limit }
+    }),
+
+  getLevelProgress: () =>
+    api.get<{ level: number; xp: number; xpToNextLevel: number; title: string; totalXpEarned: number; streak: number }>('/gamification/level-progress'),
 };
 
 // Images API

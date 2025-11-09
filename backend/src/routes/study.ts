@@ -7,6 +7,7 @@ import {
   getStudyStats,
 } from '../services/studySession';
 import { checkAndAwardBadges, getAllBadges } from '../services/badges';
+import { getNodeStrengthLabel } from '../services/nodeStrength';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -449,6 +450,169 @@ router.get('/progress/:nodeId', async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Get progress error:', error);
     res.status(500).json({ error: 'Failed to get progress' });
+  }
+});
+
+// Get neuro status for dashboard hero
+router.get('/neuro-status', async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+
+    // Get all nodes with strength
+    const nodes = await prisma.node.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        nodeStrength: true,
+        _count: {
+          select: { cards: true }
+        }
+      }
+    });
+
+    // Calculate overall score (average of all node strengths)
+    const overallScore = nodes.length > 0
+      ? nodes.reduce((sum, n) => sum + n.nodeStrength, 0) / nodes.length
+      : 0;
+
+    // Map score to status label
+    const getStatusLabel = (score: number): string => {
+      if (score < 20) return 'BRAIN-DEAD';
+      if (score < 40) return 'LMN TETRAPLEGIC';
+      if (score < 60) return 'NON-AMBULATORY ATAXIC';
+      if (score < 75) return 'AMBULATORY ATAXIC';
+      if (score < 85) return 'MILD PARESIS';
+      if (score < 95) return 'BAR (BRIGHT, ALERT, RESPONSIVE)';
+      return 'HYPERREFLEXIC PROFESSOR';
+    };
+
+    // Count nodes in each strength band
+    const nodeDistribution = {
+      brainDead: nodes.filter(n => n.nodeStrength < 20).length,
+      lmnTetraplegic: nodes.filter(n => n.nodeStrength >= 20 && n.nodeStrength < 40).length,
+      nonAmbulatoryAtaxic: nodes.filter(n => n.nodeStrength >= 40 && n.nodeStrength < 60).length,
+      ambulatoryAtaxic: nodes.filter(n => n.nodeStrength >= 60 && n.nodeStrength < 75).length,
+      mildParesis: nodes.filter(n => n.nodeStrength >= 75 && n.nodeStrength < 85).length,
+      bar: nodes.filter(n => n.nodeStrength >= 85 && n.nodeStrength < 95).length,
+      hyperreflexic: nodes.filter(n => n.nodeStrength >= 95).length,
+    };
+
+    // Get due cards count
+    const now = new Date();
+    const dueCards = await prisma.card.count({
+      where: {
+        userId,
+        fsrsData: {
+          path: ['due'],
+          lte: now.toISOString()
+        }
+      }
+    });
+
+    // Get new cards count (state = 0 in FSRS)
+    const newCards = await prisma.card.count({
+      where: {
+        userId,
+        fsrsData: {
+          path: ['state'],
+          equals: 0
+        }
+      }
+    });
+
+    // Count weak nodes
+    const weakNodeCount = nodes.filter(n => n.nodeStrength < 40).length;
+
+    res.json({
+      overallScore: Math.round(overallScore * 10) / 10,
+      statusLabel: getStatusLabel(overallScore),
+      nodeDistribution,
+      dueCards,
+      newCards,
+      weakNodeCount,
+      totalNodes: nodes.length
+    });
+  } catch (error) {
+    console.error('Get neuro status error:', error);
+    res.status(500).json({ error: 'Failed to get neuro status' });
+  }
+});
+
+// Get weak drill session (for dashboard "Drill Weakest Nodes" button)
+router.get('/weak-drill', async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const threshold = parseInt(req.query.threshold as string) || 40;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    // Get weak nodes
+    const weakNodes = await prisma.node.findMany({
+      where: {
+        userId,
+        nodeStrength: { lt: threshold }
+      },
+      select: {
+        id: true,
+        name: true,
+        nodeStrength: true
+      },
+      orderBy: { nodeStrength: 'asc' }
+    });
+
+    if (weakNodes.length === 0) {
+      return res.json({
+        cards: [],
+        count: 0,
+        nodesFocused: []
+      });
+    }
+
+    const weakNodeIds = weakNodes.map(n => n.id);
+    const now = new Date();
+
+    // Get due cards from weak nodes
+    const cards = await prisma.card.findMany({
+      where: {
+        userId,
+        nodeId: { in: weakNodeIds },
+        fsrsData: {
+          path: ['due'],
+          lte: now.toISOString()
+        }
+      },
+      include: {
+        node: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true
+          }
+        }
+      },
+      take: limit
+    });
+
+    // Transform to DueCard format
+    const dueCards = cards.map(card => ({
+      id: card.id,
+      nodeId: card.nodeId,
+      nodeName: card.node.name,
+      nodeStrength: card.node.nodeStrength,
+      front: card.front,
+      back: card.back,
+      hint: card.hint,
+      cardType: card.cardType,
+      fsrsData: card.fsrsData
+    }));
+
+    res.json({
+      cards: dueCards,
+      count: dueCards.length,
+      nodesFocused: weakNodes.slice(0, 10)
+    });
+  } catch (error) {
+    console.error('Get weak drill error:', error);
+    res.status(500).json({ error: 'Failed to get weak drill session' });
   }
 });
 

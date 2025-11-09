@@ -250,4 +250,93 @@ router.get('/:id/strength-history', async (req: AuthRequest, res) => {
   }
 });
 
+// Get critical nodes (weakest nodes for dashboard)
+router.get('/critical', async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const limit = parseInt(req.query.limit as string) || 5;
+
+    // Get weak nodes (< 40%)
+    const weakNodes = await prisma.node.findMany({
+      where: {
+        userId,
+        nodeStrength: { lt: 40 }
+      },
+      select: {
+        id: true,
+        name: true,
+        nodeStrength: true,
+        lastReviewed: true,
+        _count: {
+          select: { cards: true }
+        }
+      },
+      orderBy: { nodeStrength: 'asc' },
+      take: limit
+    });
+
+    // Get due cards count for each node
+    const now = new Date();
+    const criticalNodes = await Promise.all(
+      weakNodes.map(async (node) => {
+        const dueCards = await prisma.card.count({
+          where: {
+            nodeId: node.id,
+            fsrsData: {
+              path: ['due'],
+              lte: now.toISOString()
+            }
+          }
+        });
+
+        // Get strength from 7 days ago (simplified: just check if it's declining)
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const recentReviews = await prisma.review.count({
+          where: {
+            card: { nodeId: node.id },
+            reviewedAt: { gte: sevenDaysAgo }
+          }
+        });
+
+        // Simplified trend: if recent reviews exist and strength is low, it's declining
+        const trendDirection = recentReviews > 0 && node.nodeStrength < 30 ? 'down' :
+                              recentReviews > 5 && node.nodeStrength > 35 ? 'up' : 'stable';
+
+        // Get status label
+        const getStatusLabel = (strength: number): string => {
+          if (strength < 20) return 'Brain-dead';
+          if (strength < 40) return 'LMN tetraplegic';
+          if (strength < 60) return 'Non-ambulatory ataxic';
+          if (strength < 75) return 'Ambulatory ataxic';
+          if (strength < 85) return 'Mild paresis';
+          if (strength < 95) return 'BAR';
+          return 'Hyperreflexic';
+        };
+
+        return {
+          id: node.id,
+          name: node.name,
+          strength: Math.round(node.nodeStrength * 10) / 10,
+          statusLabel: getStatusLabel(node.nodeStrength),
+          dueCards,
+          lastReviewed: node.lastReviewed?.toISOString() || null,
+          trendDirection,
+          totalCards: node._count.cards
+        };
+      })
+    );
+
+    // Get total node count
+    const totalNodes = await prisma.node.count({ where: { userId } });
+
+    res.json({
+      nodes: criticalNodes,
+      totalNodes
+    });
+  } catch (error) {
+    console.error('Get critical nodes error:', error);
+    res.status(500).json({ error: 'Failed to get critical nodes' });
+  }
+});
+
 export default router;
