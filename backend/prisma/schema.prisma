@@ -24,6 +24,17 @@ model User {
   // Badge data (stored as JSON array)
   badges    Json     @default("[]")
 
+  // Gamification fields
+  xp            Int      @default(0)
+  level         Int      @default(1)
+  xpToNextLevel Int      @default(100)
+  title         String   @default("Comatose Newbie")
+  currentCombo  Int      @default(0)
+  highestCombo  Int      @default(0)
+  totalXpEarned Int      @default(0)
+  streak        Int      @default(0)
+  lastStudyDate DateTime?
+
   nodes     Node[]
   cards     Card[]
   reviews   Review[]
@@ -112,6 +123,8 @@ model Review {
 
   rating    Int      // 0 = Again, 1 = Hard, 2 = Good, 3 = Easy
   grade     Float    // 0, 0.4, or 1.0 (for NodeStrength calculation)
+  xpEarned  Int      @default(0)
+  comboAtReview Int  @default(0)
 
   reviewedAt DateTime @default(now())
 
