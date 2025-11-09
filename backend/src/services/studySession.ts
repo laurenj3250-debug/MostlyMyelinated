@@ -139,10 +139,22 @@ export async function getWeightedReviewSession(
 }
 
 /**
- * Get study session statistics
+ * Get study session statistics with daily caps
  */
 export async function getStudyStats(userId: string) {
   const now = new Date();
+
+  // Get user preferences for daily caps
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      maxReviewsPerDay: true,
+      maxNewCardsPerDay: true,
+    },
+  });
+
+  const maxReviewsPerDay = user?.maxReviewsPerDay || 100;
+  const maxNewCardsPerDay = user?.maxNewCardsPerDay || 10;
 
   const allCards = await prisma.card.findMany({
     where: { userId },
@@ -154,6 +166,10 @@ export async function getStudyStats(userId: string) {
   });
 
   const dueCards = allCards.filter((card) => isCardDue(card.fsrsData as any));
+  const newCards = allCards.filter((card) => {
+    const fsrs = card.fsrsData as any;
+    return fsrs.state === 0; // State 0 = New
+  });
 
   const totalCards = allCards.length;
   const dueCount = dueCards.length;
@@ -172,11 +188,33 @@ export async function getStudyStats(userId: string) {
     },
   });
 
+  // Count new cards reviewed today
+  const newCardsToday = await prisma.review.count({
+    where: {
+      userId,
+      reviewedAt: { gte: todayStart },
+      card: {
+        fsrsData: {
+          path: ['state'],
+          equals: 0,
+        },
+      },
+    },
+  });
+
+  const reviewsRemaining = Math.max(0, maxReviewsPerDay - reviewsToday);
+  const newCardsRemaining = Math.max(0, maxNewCardsPerDay - newCardsToday);
+
   return {
     totalCards,
     dueCount,
     nodesWithDueCards: nodesWithDueCards.size,
     reviewsToday,
+    newCardsToday,
+    maxReviewsPerDay,
+    maxNewCardsPerDay,
+    reviewsRemaining,
+    newCardsRemaining,
   };
 }
 

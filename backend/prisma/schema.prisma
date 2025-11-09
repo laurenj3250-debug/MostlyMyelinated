@@ -17,6 +17,13 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 
+  // Study preferences
+  maxReviewsPerDay Int @default(100)
+  maxNewCardsPerDay Int @default(10)
+
+  // Badge data (stored as JSON array)
+  badges    Json     @default("[]")
+
   nodes     Node[]
   cards     Card[]
   reviews   Review[]

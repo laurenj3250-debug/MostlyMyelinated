@@ -6,6 +6,7 @@ import {
   getWeightedReviewSession,
   getStudyStats,
 } from '../services/studySession';
+import { checkAndAwardBadges, getAllBadges } from '../services/badges';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -88,6 +89,109 @@ router.get('/stats', async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Get study stats error:', error);
     res.status(500).json({ error: 'Failed to get study stats' });
+  }
+});
+
+// Get weak nodes study session (disaster mode)
+router.get('/weak-nodes', async (req: AuthRequest, res) => {
+  try {
+    const maxCards = parseInt(req.query.max as string) || 50;
+    const threshold = parseInt(req.query.threshold as string) || 60; // Nodes below this strength
+
+    // Get all nodes below threshold
+    const weakNodes = await prisma.node.findMany({
+      where: {
+        userId: req.user!.id,
+        nodeStrength: { lt: threshold },
+      },
+      select: { id: true },
+    });
+
+    if (weakNodes.length === 0) {
+      return res.json({
+        cards: [],
+        count: 0,
+        maxCards,
+        message: 'No weak nodes found! Everything is looking good.',
+      });
+    }
+
+    const weakNodeIds = weakNodes.map(n => n.id);
+
+    // Get due cards from weak nodes only
+    const now = new Date();
+    const dueCards = await prisma.card.findMany({
+      where: {
+        userId: req.user!.id,
+        nodeId: { in: weakNodeIds },
+      },
+      include: {
+        node: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+          },
+        },
+      },
+      take: maxCards,
+      orderBy: [
+        { node: { nodeStrength: 'asc' } }, // Weakest nodes first
+      ],
+    });
+
+    const cards = dueCards.map((card) => ({
+      id: card.id,
+      nodeId: card.nodeId,
+      nodeName: card.node.name,
+      nodeStrength: card.node.nodeStrength,
+      front: card.front,
+      back: card.back,
+      hint: card.hint,
+      cardType: card.cardType,
+      fsrsData: card.fsrsData,
+    }));
+
+    res.json({
+      cards,
+      count: cards.length,
+      maxCards,
+      weakNodesCount: weakNodes.length,
+    });
+  } catch (error) {
+    console.error('Get weak nodes session error:', error);
+    res.status(500).json({ error: 'Failed to get weak nodes session' });
+  }
+});
+
+// Check and award badges
+router.post('/check-badges', async (req: AuthRequest, res) => {
+  try {
+    const newBadges = await checkAndAwardBadges(req.user!.id);
+
+    res.json({
+      newBadges,
+      count: newBadges.length,
+    });
+  } catch (error) {
+    console.error('Check badges error:', error);
+    res.status(500).json({ error: 'Failed to check badges' });
+  }
+});
+
+// Get all badges for user
+router.get('/badges', async (req: AuthRequest, res) => {
+  try {
+    const badges = await getAllBadges(req.user!.id);
+
+    res.json({
+      badges,
+      earned: badges.filter(b => b.earned).length,
+      total: badges.length,
+    });
+  } catch (error) {
+    console.error('Get badges error:', error);
+    res.status(500).json({ error: 'Failed to get badges' });
   }
 });
 

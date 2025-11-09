@@ -143,10 +143,19 @@ export const study = {
       params: { max: maxCards },
     }),
 
+  getWeakNodesSession: (maxCards?: number, threshold?: number) =>
+    api.get<StudySession>('/study/weak-nodes', {
+      params: { max: maxCards, threshold },
+    }),
+
   getStats: () => api.get<StudyStats>('/study/stats'),
 
   getProgress: (nodeId: string) =>
     api.get(`/study/progress/${nodeId}`),
+
+  checkBadges: () => api.post('/study/check-badges'),
+
+  getBadges: () => api.get('/study/badges'),
 };
 
 // Images API

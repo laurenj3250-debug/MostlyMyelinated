@@ -165,13 +165,30 @@ export default function NodeDetail() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <div>
-              <button
-                onClick={() => navigate('/')}
-                className="text-blue-600 hover:text-blue-800 mb-2"
-              >
-                ← Back to Dashboard
-              </button>
+            <div className="flex-1">
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 mb-2 text-sm">
+                <button
+                  onClick={() => navigate('/')}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  Dashboard
+                </button>
+                {(node as any).parent && (
+                  <>
+                    <span className="text-gray-400">›</span>
+                    <button
+                      onClick={() => navigate(`/nodes/${(node as any).parent.id}`)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      {(node as any).parent.name}
+                    </button>
+                  </>
+                )}
+                <span className="text-gray-400">›</span>
+                <span className="text-gray-700">{node.name}</span>
+              </div>
+
               <h1 className="text-3xl font-bold text-gray-900">{node.name}</h1>
               {node.summary && (
                 <p className="text-gray-600 mt-2">{node.summary}</p>
@@ -190,6 +207,27 @@ export default function NodeDetail() {
           </div>
         </div>
       </header>
+
+      {/* Child Nodes Section */}
+      {(node as any).children && (node as any).children.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold mb-4">Child Topics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(node as any).children.map((child: any) => (
+              <div
+                key={child.id}
+                onClick={() => navigate(`/nodes/${child.id}`)}
+                className="card cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                <h3 className="font-bold text-lg mb-2">{child.name}</h3>
+                <div className="text-sm text-gray-600">
+                  Strength: {child.nodeStrength}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Add */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">

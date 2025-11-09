@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { study, cards as cardsApi } from '../services/api';
 import { DueCard } from '../types';
 import FlashCard from '../components/FlashCard';
 
 export default function Study() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode'); // 'disasters' for weak nodes mode
   const [session, setSession] = useState<DueCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -21,11 +23,18 @@ export default function Study() {
 
   useEffect(() => {
     loadSession();
-  }, []);
+  }, [mode]);
 
   const loadSession = async () => {
     try {
-      const res = await study.getSession(80);
+      let res;
+      if (mode === 'disasters') {
+        // Load weak nodes session
+        res = await study.getWeakNodesSession(50, 60);
+      } else {
+        // Load normal session
+        res = await study.getSession(80);
+      }
       setSession(res.data.cards);
       setSessionStats((prev) => ({ ...prev, total: res.data.count }));
     } catch (error) {
@@ -102,7 +111,7 @@ export default function Study() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className={`shadow-sm ${mode === 'disasters' ? 'bg-red-100' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <button
@@ -116,6 +125,11 @@ export default function Study() {
               ← Quit
             </button>
             <div className="text-center flex-1">
+              {mode === 'disasters' && (
+                <div className="text-sm font-bold text-red-700 mb-1">
+                  DISASTER MODE: Weak Nodes Only
+                </div>
+              )}
               <div className="text-lg font-semibold">
                 {currentIndex + 1} / {session.length}
               </div>
