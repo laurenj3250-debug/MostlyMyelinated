@@ -3,7 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { study, cards as cardsApi } from '../services/api';
 import { DueCard } from '../types';
 import FlashCard from '../components/FlashCard';
+import ComboDisplay from '../components/ComboDisplay';
 import { useToast } from '../components/ToastContainer';
+import { useSwipe } from '../hooks/useSwipe';
 
 export default function Study() {
   const navigate = useNavigate();
@@ -24,10 +26,20 @@ export default function Study() {
     good: 0,
     easy: 0,
   });
+  const [combo, setCombo] = useState(0);
 
   useEffect(() => {
     loadSession();
   }, [mode]);
+
+  // Swipe gestures for mobile (optional but nice)
+  useSwipe((_direction) => {
+    // Only allow swipes when card is flipped (answer is shown)
+    // This prevents accidental swipes while reading the question
+    // Swipe up = Easy (4), Down = Again (1), Right = Good (3), Left = Hard (2)
+    // Note: This is a nice-to-have feature, keyboard and buttons are primary input methods
+    // Currently disabled - can be enabled later if desired
+  });
 
   const loadSession = async () => {
     try {
@@ -69,10 +81,31 @@ export default function Study() {
     try {
       const res = await cardsApi.review(card.id, rating);
 
+      // Update combo counter
+      let newCombo = combo;
+      if (rating >= 2) {
+        // Good or Easy - increment combo
+        newCombo = combo + 1;
+        setCombo(newCombo);
+
+        // Show combo milestones
+        if (newCombo === 5 || newCombo === 10 || newCombo === 25 || newCombo === 50) {
+          addToast({
+            message: `COMBO x${newCombo} - NEURAL EFFICIENCY INCREASING`,
+            type: 'info',
+            duration: 2000,
+          });
+        }
+      } else {
+        // Again or Hard - reset combo
+        newCombo = 0;
+        setCombo(0);
+      }
+
       // Check for strength band drop (Lesion Alert)
       if (res.data.strengthDropped) {
         addToast({
-          message: `⚠️ Lesion Alert: ${res.data.nodeName} dropped from ${res.data.oldBand} → ${res.data.newBand}`,
+          message: `LESION ALERT: ${res.data.nodeName} dropped from ${res.data.oldBand} → ${res.data.newBand}`,
           type: 'warning',
           duration: 5000,
         });
@@ -165,14 +198,28 @@ export default function Study() {
   const currentCard = session[currentIndex];
   const progress = ((currentIndex + 1) / session.length) * 100;
 
+  // Calculate success rate
+  const successRate = sessionStats.reviewed > 0
+    ? (((sessionStats.good + sessionStats.easy) / sessionStats.reviewed) * 100).toFixed(1)
+    : '0.0';
+
+  // Determine session title based on mode
+  const getSessionTitle = () => {
+    if (mode === 'weak-drill') {
+      return '🚨 CRITICAL NODE INTERVENTION PROTOCOL';
+    } else if (mode === 'disasters') {
+      return 'DISASTER MODE: WEAK NODES ONLY';
+    } else if (mode === 'drill') {
+      return sessionTitle.toUpperCase();
+    } else {
+      return 'COGNITIVE ASSESSMENT IN PROGRESS';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-lab-background">
       {/* Header */}
-      <header className={`shadow-xl ${
-        mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-          ? 'bg-gradient-to-r from-red-600 to-pink-600'
-          : 'bg-gradient-to-r from-blue-600 to-purple-600'
-      }`}>
+      <header className="bg-black border-b-2 border-lab-cyan/30">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <button
@@ -181,40 +228,41 @@ export default function Study() {
                   navigate('/');
                 }
               }}
-              className="text-white hover:bg-white/20 px-4 py-2 rounded-lg font-semibold
-                        transition-all duration-200 flex items-center gap-2"
+              className="bg-lab-card/50 border border-lab-border text-lab-text-primary hover:border-lab-cyan hover:text-lab-cyan px-4 py-2 font-mono uppercase font-bold transition-all"
+              style={{ borderRadius: '2px' }}
             >
-              <span>←</span> Quit
+              <span>←</span> QUIT
             </button>
             <div className="text-center flex-1">
-              {(mode === 'weak-drill' || mode === 'disasters' || mode === 'drill') && (
-                <div className="text-sm font-bold text-white/90 mb-2 animate-pulse">
-                  {sessionTitle}
-                </div>
-              )}
-              <div className="text-2xl md:text-3xl font-black text-white mb-1">
-                {currentIndex + 1} <span className="text-white/70">/</span> {session.length}
+              <div className="text-sm font-mono text-lab-cyan uppercase mb-2 tracking-wider">
+                {getSessionTitle()}
               </div>
-              <div className="text-sm text-white/80 font-medium">
-                {sessionStats.reviewed} cards reviewed
+              <div className="text-3xl font-mono font-bold text-lab-cyan mb-1">
+                {currentIndex + 1} <span className="text-lab-cyan/50">/</span> {session.length}
+              </div>
+              <div className="text-sm font-mono text-lab-text-secondary">
+                ASSESSED: {sessionStats.reviewed}/{session.length} | SUCCESS RATE: {successRate}%
               </div>
             </div>
             <div className="w-20"></div>
           </div>
 
           {/* Progress bar */}
-          <div className="mt-6 h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur">
+          <div className="mt-6 h-2 bg-lab-card/30" style={{ borderRadius: '2px' }}>
             <div
               className={`h-full ${
                 mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                  ? 'bg-gradient-to-r from-yellow-400 to-green-400'
-                  : 'bg-gradient-to-r from-green-400 to-blue-400'
-              } transition-all duration-500 shadow-lg`}
-              style={{ width: `${progress}%` }}
+                  ? 'bg-lab-alert'
+                  : 'bg-lab-cyan'
+              } ${progress > 50 ? 'shadow-glow-cyan' : ''} transition-all duration-500`}
+              style={{ width: `${progress}%`, borderRadius: '2px' }}
             />
           </div>
         </div>
       </header>
+
+      {/* Combo Display */}
+      <ComboDisplay combo={combo} visible={true} />
 
       {/* Card */}
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -222,24 +270,67 @@ export default function Study() {
       </div>
 
       {/* Stats footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t-2 border-gray-100 py-4 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-black border-t-2 border-lab-cyan/30 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center gap-6 md:gap-8 text-sm md:text-base font-semibold">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {/* FAILED */}
             <div className="flex flex-col items-center">
-              <span className="text-red-600 text-xl md:text-2xl font-bold">{sessionStats.again}</span>
-              <span className="text-gray-600 text-xs">Again</span>
+              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">FAILED</div>
+              <div className="text-2xl font-mono font-bold text-lab-alert">{sessionStats.again}</div>
+              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+                <div
+                  className="h-full bg-lab-alert transition-all"
+                  style={{
+                    width: `${sessionStats.reviewed > 0 ? (sessionStats.again / sessionStats.reviewed * 100) : 0}%`,
+                    borderRadius: '2px'
+                  }}
+                />
+              </div>
             </div>
+
+            {/* PARTIAL */}
             <div className="flex flex-col items-center">
-              <span className="text-orange-600 text-xl md:text-2xl font-bold">{sessionStats.hard}</span>
-              <span className="text-gray-600 text-xs">Hard</span>
+              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">PARTIAL</div>
+              <div className="text-2xl font-mono font-bold text-orange-500">{sessionStats.hard}</div>
+              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+                <div
+                  className="h-full bg-orange-500 transition-all"
+                  style={{
+                    width: `${sessionStats.reviewed > 0 ? (sessionStats.hard / sessionStats.reviewed * 100) : 0}%`,
+                    borderRadius: '2px'
+                  }}
+                />
+              </div>
             </div>
+
+            {/* SUCCESS */}
             <div className="flex flex-col items-center">
-              <span className="text-green-600 text-xl md:text-2xl font-bold">{sessionStats.good}</span>
-              <span className="text-gray-600 text-xs">Good</span>
+              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">SUCCESS</div>
+              <div className="text-2xl font-mono font-bold text-lab-cyan">{sessionStats.good}</div>
+              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+                <div
+                  className="h-full bg-lab-cyan transition-all"
+                  style={{
+                    width: `${sessionStats.reviewed > 0 ? (sessionStats.good / sessionStats.reviewed * 100) : 0}%`,
+                    borderRadius: '2px'
+                  }}
+                />
+              </div>
             </div>
+
+            {/* PERFECT */}
             <div className="flex flex-col items-center">
-              <span className="text-blue-600 text-xl md:text-2xl font-bold">{sessionStats.easy}</span>
-              <span className="text-gray-600 text-xs">Easy</span>
+              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">PERFECT</div>
+              <div className="text-2xl font-mono font-bold text-lab-mint">{sessionStats.easy}</div>
+              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+                <div
+                  className="h-full bg-lab-mint transition-all"
+                  style={{
+                    width: `${sessionStats.reviewed > 0 ? (sessionStats.easy / sessionStats.reviewed * 100) : 0}%`,
+                    borderRadius: '2px'
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

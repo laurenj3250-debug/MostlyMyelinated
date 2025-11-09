@@ -5,12 +5,17 @@ import confetti from 'canvas-confetti';
  */
 
 /**
+ * Clinical confetti colors for Neuroscience Lab Theme
+ */
+const CLINICAL_COLORS = ['#00d9ff', '#00ff88', '#ffffff'];
+
+/**
  * Full-screen celebration confetti (level ups, session complete)
  */
 export const celebrationConfetti = () => {
   const duration = 3000;
   const animationEnd = Date.now() + duration;
-  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999, colors: CLINICAL_COLORS };
 
   function randomInRange(min: number, max: number) {
     return Math.random() * (max - min) + min;
@@ -51,11 +56,12 @@ export const burstConfetti = (element?: HTMLElement) => {
     spread: 70,
     origin: { x, y },
     zIndex: 9999,
+    colors: CLINICAL_COLORS,
   });
 };
 
 /**
- * Rainbow confetti for legendary achievements
+ * Legendary confetti for exceptional achievements (clinical colors)
  */
 export const legendaryConfetti = () => {
   const duration = 5000;
@@ -67,7 +73,7 @@ export const legendaryConfetti = () => {
       angle: 60,
       spread: 55,
       origin: { x: 0, y: 0.6 },
-      colors: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'],
+      colors: CLINICAL_COLORS,
       zIndex: 9999,
     });
     confetti({
@@ -75,7 +81,7 @@ export const legendaryConfetti = () => {
       angle: 120,
       spread: 55,
       origin: { x: 1, y: 0.6 },
-      colors: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'],
+      colors: CLINICAL_COLORS,
       zIndex: 9999,
     });
 
@@ -98,7 +104,7 @@ export const sparkleConfetti = (element?: HTMLElement) => {
     spread: 30,
     startVelocity: 15,
     origin: { x, y },
-    colors: ['#FFD700', '#FFA500', '#FF69B4'],
+    colors: CLINICAL_COLORS,
     zIndex: 9999,
   });
 };
@@ -109,29 +115,25 @@ export const sparkleConfetti = (element?: HTMLElement) => {
 export const comboConfetti = (combo: number) => {
   let particleCount = 50;
   let spread = 50;
-  let colors = ['#ff6b35'];
 
   if (combo >= 20) {
     // MEGA COMBO
     particleCount = 200;
     spread = 180;
-    colors = ['#ff0000', '#ff7f00', '#ffff00'];
     legendaryConfetti();
   } else if (combo >= 10) {
     particleCount = 150;
     spread = 120;
-    colors = ['#ff4500', '#ffa500'];
   } else if (combo >= 5) {
     particleCount = 100;
     spread = 80;
-    colors = ['#ff6347', '#ff8c00'];
   }
 
   confetti({
     particleCount,
     spread,
     origin: { y: 0.6 },
-    colors,
+    colors: CLINICAL_COLORS,
     zIndex: 9999,
   });
 };
@@ -173,7 +175,7 @@ export const perfectSessionConfetti = () => {
       spread: 45,
       startVelocity: 45,
       origin: { x: Math.random(), y: -0.1 },
-      colors: ['#FFD700', '#FFA500', '#FF69B4', '#00BFFF'],
+      colors: CLINICAL_COLORS,
       zIndex: 9999,
       gravity: 1.2,
     });

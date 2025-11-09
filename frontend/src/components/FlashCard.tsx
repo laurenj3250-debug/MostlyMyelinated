@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DueCard } from '../types';
-import { Brain, Eye } from 'lucide-react';
 
 interface Props {
   card: DueCard;
@@ -9,25 +8,32 @@ interface Props {
 
 export default function FlashCard({ card, onReview }: Props) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; color: string } | null>(null);
+
+  // Reset card state when card changes
+  useEffect(() => {
+    setIsFlipped(false);
+    setShowHint(false);
+  }, [card.id]);
 
   const getMicroFeedback = (rating: number, nodeStrength: number) => {
     const messages = {
       0: { // Again
-        weak: ["That node is crying for help 😢", "Ouch, that hurts the myelin 💔", "Time for more reps on this one 🔄"],
-        strong: ["Even experts need refreshers 🤔", "Slippery one, huh? 🧊", "No worries, we all have off days 📉"]
+        weak: ["CRITICAL: Neural pathway requires immediate intervention", "LESION DETECTED: Myelin degradation observed", "ASSESSMENT FAILED: Immediate repetition required"],
+        strong: ["UNEXPECTED: Synapse misfire recorded", "ANOMALY: Pattern recognition compromised", "DIAGNOSTIC: Memory trace degradation"]
       },
       1: { // Hard
-        weak: ["Struggling but fighting 💪", "Progress, slowly but surely 🐌", "Getting warmer... 🌡️"],
-        strong: ["Keeping you honest 🎯", "A little rusty there 🔧", "Close call 😅"]
+        weak: ["MARGINAL: Partial pathway activation detected", "SUBOPTIMAL: Neural efficiency below threshold", "IMPROVING: Synaptic connection strengthening"],
+        strong: ["PARTIAL RECALL: Pattern recognition delayed", "ACCEPTABLE: Minor latency observed", "DIAGNOSTIC: Consolidation in progress"]
       },
       2: { // Good
-        weak: ["Now we're talking! 🎉", "That's the spirit! 💫", "Synapses are firing! ⚡"],
-        strong: ["Smooth operator 😎", "Classic execution 👌", "Right on track 🛤️"]
+        weak: ["BREAKTHROUGH: Pathway restoration detected", "POSITIVE: Synaptic efficiency increasing", "SUCCESS: Neural integrity confirmed"],
+        strong: ["OPTIMAL: Pattern recognition successful", "CONFIRMED: Pathway fully functional", "VALIDATED: Memory trace stable"]
       },
       3: { // Easy
-        weak: ["Professor-level flex! 💪", "Showing off now? 🌟", "Crushing it! 🔥"],
-        strong: ["Hyperreflexic professor mode! 💠", "Absolute mastery 👑", "Textbook perfect! 📚"]
+        weak: ["EXCEPTIONAL: Rapid pathway restoration", "MAXIMUM EFFICIENCY: Pattern mastery achieved", "CLINICAL EXCELLENCE: Neural hyperfunction"],
+        strong: ["HYPERREFLEXIC: Instantaneous recall", "MASTERY LEVEL: Perfect pattern execution", "DIAGNOSTIC PERFECTION: Textbook response"]
       }
     };
 
@@ -36,10 +42,10 @@ export default function FlashCard({ card, onReview }: Props) {
     const message = options[Math.floor(Math.random() * options.length)];
 
     const colors = {
-      0: 'from-red-600 to-red-700',
-      1: 'from-orange-500 to-orange-600',
-      2: 'from-green-600 to-green-700',
-      3: 'from-blue-600 to-blue-700',
+      0: 'bg-lab-alert border-lab-alert',
+      1: 'bg-orange-500 border-orange-500',
+      2: 'bg-lab-cyan border-lab-cyan',
+      3: 'bg-lab-mint border-lab-mint',
     };
 
     return { message, color: colors[rating as keyof typeof colors] };
@@ -54,68 +60,104 @@ export default function FlashCard({ card, onReview }: Props) {
     setTimeout(() => {
       setFeedback(null);
       onReview(rating);
-      setIsFlipped(false); // Reset for next card
     }, 2500);
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (feedback) return; // Ignore during feedback
+
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        setIsFlipped(!isFlipped);
+      } else if (isFlipped) {
+        // Review shortcuts (only when flipped)
+        if (e.key === '1') handleReview(0); // Again
+        if (e.key === '2') handleReview(1); // Hard
+        if (e.key === '3') handleReview(2); // Good
+        if (e.key === '4') handleReview(3); // Easy
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isFlipped, feedback]);
+
   return (
     <div className="w-full max-w-3xl mx-auto">
-      {/* Node context badge */}
-      <div className="mb-6 flex items-center justify-center gap-2">
-        <div className="bg-white shadow-lg rounded-full px-6 py-3 border-2 border-blue-100">
-          <div className="flex items-center gap-3">
-            <Brain className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-gray-900">{card.nodeName}</span>
-            <span className="text-gray-400">•</span>
-            <span className="text-sm font-medium text-gray-600">
-              Strength: <span className="text-blue-600 font-bold">{card.nodeStrength}%</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Card */}
       <div
-        className={`relative overflow-hidden bg-gradient-to-br from-white to-blue-50
-                    rounded-3xl shadow-2xl p-8 md:p-12
-                    min-h-[400px] flex flex-col justify-center items-center
-                    cursor-pointer border-2 border-blue-100
-                    transition-all duration-500
-                    ${isFlipped ? 'scale-[0.98]' : 'hover:scale-[1.02]'}
-                    ${!isFlipped ? 'animate-scale-in' : ''}`}
-        onClick={() => setIsFlipped(!isFlipped)}
+        className="bg-black border-2 border-lab-cyan/50 shadow-2xl shadow-lab-cyan/10 p-8 md:p-12 min-h-[400px] flex flex-col cursor-pointer transition-all duration-300 hover:border-lab-cyan"
+        style={{ borderRadius: '2px' }}
+        onClick={() => !feedback && setIsFlipped(!isFlipped)}
       >
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-400 rounded-full mix-blend-multiply
-                        filter blur-3xl opacity-10" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400 rounded-full mix-blend-multiply
-                        filter blur-3xl opacity-10" />
+        {/* Card Metadata Header */}
+        <div className="border-b border-lab-cyan/30 pb-3 mb-4">
+          <div className="flex flex-wrap justify-between items-center gap-2 text-xs font-mono text-lab-text-tertiary">
+            <span>NODE: {card.nodeName.toUpperCase()}</span>
+            <span>STRENGTH: {card.nodeStrength}%</span>
+            <span>TYPE: {card.cardType?.toUpperCase() || 'RECALL'}</span>
+          </div>
+        </div>
 
-        <div className="relative z-10 w-full">
+        {/* Card Content */}
+        <div className="flex-1 flex flex-col justify-center">
           {!isFlipped ? (
-            <div className="text-center animate-fade-in">
-              <p className="text-3xl md:text-4xl font-bold mb-6 leading-tight text-gray-900">
-                {card.front}
-              </p>
-              {card.hint && (
-                <div className="mt-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
-                  <p className="text-sm font-medium text-yellow-900">
-                    <span className="font-bold">Hint:</span> {card.hint}
+            <div className="animate-fade-in">
+              {/* Front Side - Stimulus */}
+              <div className="mb-4">
+                <div className="text-xs font-mono uppercase text-lab-cyan tracking-wider mb-2">STIMULUS:</div>
+                <div className="bg-lab-card/30 p-4 border border-lab-border/50" style={{ borderRadius: '2px' }}>
+                  <p className="font-mono text-lab-text-primary text-lg leading-relaxed">
+                    {card.front}
                   </p>
                 </div>
+              </div>
+
+              {/* Hint Section */}
+              {card.hint && (
+                <div className="mt-6">
+                  {!showHint ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowHint(true); }}
+                      className="bg-lab-card border border-lab-border text-lab-text-secondary hover:border-lab-cyan hover:text-lab-cyan px-4 py-2 font-mono text-sm uppercase transition-all"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      DIAGNOSTIC HINT
+                    </button>
+                  ) : (
+                    <div className="bg-lab-card/50 border-l-2 border-lab-mint p-3 text-sm font-mono text-lab-mint animate-fade-in" style={{ borderRadius: '2px' }}>
+                      {card.hint}
+                    </div>
+                  )}
+                </div>
               )}
-              <div className="mt-12 flex items-center justify-center gap-2 text-blue-600 animate-float">
-                <Eye className="w-5 h-5" />
-                <p className="text-sm font-semibold">Click to reveal answer</p>
+
+              {/* Flip instruction */}
+              <div className="mt-8 text-center text-xs font-mono text-lab-text-tertiary uppercase tracking-wider opacity-70">
+                [SPACE] TO REVEAL RESPONSE
               </div>
             </div>
           ) : (
-            <div className="text-center animate-fade-in">
-              <p className="text-xl md:text-2xl text-gray-600 mb-6">{card.front}</p>
-              <div className="border-t-2 border-blue-200 pt-6 mt-6">
-                <p className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-                  {card.back}
-                </p>
+            <div className="animate-fade-in">
+              {/* Back Side - Response */}
+              <div className="mb-4">
+                <div className="text-xs font-mono uppercase text-lab-cyan tracking-wider mb-2">STIMULUS:</div>
+                <div className="bg-lab-card/30 p-3 border border-lab-border/50" style={{ borderRadius: '2px' }}>
+                  <p className="font-mono text-lab-text-secondary text-base">
+                    {card.front}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <div className="text-xs font-mono uppercase text-lab-mint tracking-wider mb-2">RESPONSE:</div>
+                <div className="bg-lab-card/30 p-4 border border-lab-border/50" style={{ borderRadius: '2px' }}>
+                  <p className="font-mono text-lab-text-primary text-lg leading-relaxed">
+                    {card.back}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -125,10 +167,8 @@ export default function FlashCard({ card, onReview }: Props) {
       {/* Micro-feedback overlay */}
       {feedback && (
         <div className="mt-6 animate-scale-in">
-          <div className={`bg-gradient-to-r ${feedback.color} text-white
-                          rounded-2xl shadow-2xl p-6 text-center
-                          transform transition-all duration-300`}>
-            <p className="text-xl md:text-2xl font-bold">
+          <div className={`${feedback.color}/10 border-2 ${feedback.color} text-white p-6 text-center font-mono uppercase tracking-wide`} style={{ borderRadius: '2px' }}>
+            <p className="text-sm md:text-base font-bold">
               {feedback.message}
             </p>
           </div>
@@ -137,54 +177,49 @@ export default function FlashCard({ card, onReview }: Props) {
 
       {/* Answer buttons */}
       {isFlipped && !feedback && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-8 animate-slide-in">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-6 animate-slide-in">
+          {/* FAILED ASSESSMENT */}
           <button
             onClick={(e) => { e.stopPropagation(); handleReview(0); }}
-            className="btn bg-gradient-to-r from-red-600 to-red-700 text-white
-                      hover:from-red-700 hover:to-red-800 py-5 md:py-6
-                      shadow-xl hover:shadow-2xl transform hover:scale-105
-                      transition-all duration-200"
+            className="flex-1 bg-lab-alert/10 border-2 border-lab-alert text-lab-alert hover:bg-lab-alert/20 py-4 font-mono uppercase font-bold transition-all"
+            style={{ borderRadius: '2px' }}
           >
-            <div className="flex flex-col">
-              <span className="text-base md:text-lg font-bold">Again</span>
-              <span className="text-xs opacity-90 mt-1">&lt;1m</span>
-            </div>
+            <div className="text-xs opacity-70">[1]</div>
+            <div className="text-sm">FAILED</div>
+            <div className="text-xs opacity-70">ASSESSMENT</div>
           </button>
+
+          {/* PARTIAL RECALL */}
           <button
             onClick={(e) => { e.stopPropagation(); handleReview(1); }}
-            className="btn bg-gradient-to-r from-orange-500 to-orange-600 text-white
-                      hover:from-orange-600 hover:to-orange-700 py-5 md:py-6
-                      shadow-xl hover:shadow-2xl transform hover:scale-105
-                      transition-all duration-200"
+            className="flex-1 bg-orange-500/10 border-2 border-orange-500 text-orange-500 hover:bg-orange-500/20 py-4 font-mono uppercase font-bold transition-all"
+            style={{ borderRadius: '2px' }}
           >
-            <div className="flex flex-col">
-              <span className="text-base md:text-lg font-bold">Hard</span>
-              <span className="text-xs opacity-90 mt-1">~6m</span>
-            </div>
+            <div className="text-xs opacity-70">[2]</div>
+            <div className="text-sm">PARTIAL</div>
+            <div className="text-xs opacity-70">RECALL</div>
           </button>
+
+          {/* SUCCESSFUL RECALL */}
           <button
             onClick={(e) => { e.stopPropagation(); handleReview(2); }}
-            className="btn bg-gradient-to-r from-green-600 to-green-700 text-white
-                      hover:from-green-700 hover:to-green-800 py-5 md:py-6
-                      shadow-xl hover:shadow-2xl transform hover:scale-105
-                      transition-all duration-200"
+            className="flex-1 bg-lab-cyan/10 border-2 border-lab-cyan text-lab-cyan hover:bg-lab-cyan/20 py-4 font-mono uppercase font-bold transition-all"
+            style={{ borderRadius: '2px' }}
           >
-            <div className="flex flex-col">
-              <span className="text-base md:text-lg font-bold">Good</span>
-              <span className="text-xs opacity-90 mt-1">~10m</span>
-            </div>
+            <div className="text-xs opacity-70">[3]</div>
+            <div className="text-sm">SUCCESSFUL</div>
+            <div className="text-xs opacity-70">RECALL</div>
           </button>
+
+          {/* PERFECT RECALL */}
           <button
             onClick={(e) => { e.stopPropagation(); handleReview(3); }}
-            className="btn bg-gradient-to-r from-blue-600 to-blue-700 text-white
-                      hover:from-blue-700 hover:to-blue-800 py-5 md:py-6
-                      shadow-xl hover:shadow-2xl transform hover:scale-105
-                      transition-all duration-200"
+            className="flex-1 bg-lab-mint/10 border-2 border-lab-mint text-lab-mint hover:bg-lab-mint/20 py-4 font-mono uppercase font-bold transition-all"
+            style={{ borderRadius: '2px' }}
           >
-            <div className="flex flex-col">
-              <span className="text-base md:text-lg font-bold">Easy</span>
-              <span className="text-xs opacity-90 mt-1">~4d</span>
-            </div>
+            <div className="text-xs opacity-70">[4]</div>
+            <div className="text-sm">PERFECT</div>
+            <div className="text-xs opacity-70">RECALL</div>
           </button>
         </div>
       )}
