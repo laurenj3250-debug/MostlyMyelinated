@@ -6,8 +6,8 @@ interface ComboCounterProps {
 }
 
 /**
- * MAXIMUM DOPAMINE COMBO COUNTER
- * Visual combo display that grows and shakes with size
+ * REAL-TIME COMBO MONITOR
+ * Digital readout display - no emojis, pure data
  */
 export default function ComboCounter({ combo, multiplier }: ComboCounterProps) {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -16,7 +16,7 @@ export default function ComboCounter({ combo, multiplier }: ComboCounterProps) {
   useEffect(() => {
     if (combo > prevCombo) {
       setIsAnimating(true);
-      setTimeout(() => setIsAnimating(false), 500);
+      setTimeout(() => setIsAnimating(false), 300);
     }
     setPrevCombo(combo);
   }, [combo, prevCombo]);
@@ -25,105 +25,125 @@ export default function ComboCounter({ combo, multiplier }: ComboCounterProps) {
     return null; // Don't show until 3+ combo
   }
 
-  // Visual states based on combo size
-  const getComboStyle = () => {
-    if (combo >= 20) {
-      return {
-        size: 'text-6xl',
-        emoji: '💥💥💥',
-        label: 'MEGA COMBO',
-        bgColor: 'from-red-600 via-orange-500 to-yellow-500',
-        borderColor: 'border-yellow-500',
-        glow: 'shadow-2xl shadow-yellow-500/50',
-        shake: true,
-      };
-    } else if (combo >= 10) {
-      return {
-        size: 'text-5xl',
-        emoji: '🔥🔥🔥',
-        label: 'HUGE COMBO',
-        bgColor: 'from-red-600 via-orange-500 to-red-600',
-        borderColor: 'border-red-500',
-        glow: 'shadow-xl shadow-red-500/50',
-        shake: true,
-      };
-    } else if (combo >= 5) {
-      return {
-        size: 'text-4xl',
-        emoji: '🔥🔥',
-        label: 'BIG COMBO',
-        bgColor: 'from-orange-600 via-yellow-500 to-orange-600',
-        borderColor: 'border-orange-500',
-        glow: 'shadow-lg shadow-orange-500/50',
-        shake: false,
-      };
-    } else {
-      return {
-        size: 'text-3xl',
-        emoji: '🔥',
-        label: 'COMBO',
-        bgColor: 'from-orange-500 to-red-500',
-        borderColor: 'border-orange-400',
-        glow: 'shadow-md shadow-orange-500/30',
-        shake: false,
-      };
-    }
+  // Determine alert level based on combo
+  const getAlertLevel = () => {
+    if (combo >= 20) return 'CRITICAL';
+    if (combo >= 10) return 'HIGH';
+    if (combo >= 5) return 'ELEVATED';
+    return 'ACTIVE';
   };
 
-  const style = getComboStyle();
+  const getGlowColor = () => {
+    if (combo >= 20) return 'shadow-glow-alert';
+    if (combo >= 10) return 'shadow-glow-cyan';
+    return 'shadow-glow-mint';
+  };
+
+  const getTextColor = () => {
+    if (combo >= 20) return 'text-lab-alert';
+    if (combo >= 10) return 'text-lab-cyan';
+    return 'text-lab-mint';
+  };
+
+  const getBorderColor = () => {
+    if (combo >= 20) return 'border-lab-alert';
+    if (combo >= 10) return 'border-lab-cyan';
+    return 'border-lab-mint';
+  };
 
   return (
     <div
       className={`
         fixed top-24 right-4 z-50
-        bg-gradient-to-br ${style.bgColor}
-        border-4 ${style.borderColor}
-        rounded-2xl p-4
-        ${style.glow}
-        transform transition-all duration-300
-        ${isAnimating ? 'scale-110' : 'scale-100'}
-        ${style.shake && isAnimating ? 'animate-shake' : ''}
-        ${combo >= 20 ? 'animate-pulse' : ''}
+        bg-black border-2 ${getBorderColor()}
+        p-4 ${getGlowColor()}
+        transform transition-all duration-200
+        ${isAnimating ? 'scale-105 animate-data-flicker' : 'scale-100'}
+        ${combo >= 20 ? 'animate-pulse-cyan' : ''}
       `}
+      style={{ borderRadius: '2px' }}
     >
-      <div className="text-center">
-        <div className={`${style.size} font-black text-white mb-1 drop-shadow-lg`}>
-          {combo}x
+      {/* Scan line overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              0deg,
+              transparent,
+              transparent 2px,
+              rgba(0, 217, 255, 0.05) 2px,
+              rgba(0, 217, 255, 0.05) 3px
+            )`,
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 min-w-[200px]">
+        {/* Header */}
+        <div className="border-b border-lab-cyan/30 pb-2 mb-2">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider">
+              COMBO MONITOR
+            </span>
+            <span className={`text-xs font-mono ${getTextColor()} font-bold uppercase tracking-wider`}>
+              {getAlertLevel()}
+            </span>
+          </div>
         </div>
-        <div className="text-xs font-bold text-white/90 uppercase tracking-wider mb-1">
-          {style.label}
+
+        {/* Main combo display */}
+        <div className="flex items-end justify-between mb-3">
+          <div>
+            <div className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+              STREAK
+            </div>
+            <div className={`text-5xl font-mono font-bold ${getTextColor()} text-glow leading-none`}>
+              {String(combo).padStart(2, '0')}
+            </div>
+          </div>
+          <div className={`text-xl font-mono ${getTextColor()} mb-1`}>x</div>
         </div>
-        <div className="text-2xl mb-1">{style.emoji}</div>
-        <div className="text-sm font-bold text-white/90">
-          {multiplier}x XP
+
+        {/* Multiplier display */}
+        <div className="border-t border-lab-cyan/30 pt-2">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-mono text-lab-text-tertiary uppercase">
+              XP MULTIPLIER
+            </span>
+            <span className={`text-lg font-mono font-bold ${getTextColor()}`}>
+              {multiplier.toFixed(1)}x
+            </span>
+          </div>
+        </div>
+
+        {/* Bonus XP indicator */}
+        <div className="mt-2 text-xs font-mono text-lab-text-tertiary">
+          +{Math.round((multiplier - 1) * 100)}% BONUS
+        </div>
+
+        {/* Activity indicator bars */}
+        <div className="mt-3 flex gap-1">
+          {Array.from({ length: Math.min(combo, 10) }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 flex-1 ${
+                i < combo ? getBorderColor().replace('border-', 'bg-') : 'bg-lab-border'
+              } transition-all duration-300`}
+            />
+          ))}
+        </div>
+
+        {/* System time stamp */}
+        <div className="mt-3 text-xs font-mono text-lab-text-tertiary opacity-50">
+          {new Date().toISOString().slice(11, 19)} UTC
         </div>
       </div>
 
-      {/* Flame particles for high combos */}
+      {/* Pulse indicator for high combos */}
       {combo >= 10 && (
-        <div className="absolute -top-2 -right-2">
-          <span className="text-3xl animate-bounce">🔥</span>
-        </div>
+        <div className={`absolute -top-1 -right-1 w-3 h-3 ${getBorderColor().replace('border-', 'bg-')} rounded-full animate-pulse`} />
       )}
-      {combo >= 10 && (
-        <div className="absolute -top-2 -left-2">
-          <span className="text-3xl animate-bounce delay-100">🔥</span>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0) rotate(0deg); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-2deg); }
-          20%, 40%, 60%, 80% { transform: translateX(5px) rotate(2deg); }
-        }
-        .animate-shake {
-          animation: shake 0.5s;
-        }
-        .delay-100 {
-          animation-delay: 0.1s;
-        }
-      `}</style>
     </div>
   );
 }

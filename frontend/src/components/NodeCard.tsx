@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Node } from '../types';
 import NeuroLabel from './NeuroLabel';
 import Sparkline from './Sparkline';
-import { Brain, Calendar, FileText, CreditCard, TrendingUp } from 'lucide-react';
+import HeatMapBar from './HeatMapBar';
+import ScanlineOverlay from './ScanlineOverlay';
+import { Brain, Calendar, FileText, CreditCard } from 'lucide-react';
 import { nodes } from '../services/api';
 
 interface Props {
@@ -10,6 +12,10 @@ interface Props {
   onClick: () => void;
 }
 
+/**
+ * CLINICAL NODE INTERFACE CARD
+ * Brain scan result style with metadata and heat map visualization
+ */
 export default function NodeCard({ node, onClick }: Props) {
   const [sparklineData, setSparklineData] = useState<Array<{ date: string; strength: number }>>([]);
 
@@ -22,86 +28,73 @@ export default function NodeCard({ node, onClick }: Props) {
       const res = await nodes.getStrengthHistory(node.id, 7);
       setSparklineData(res.data.history);
     } catch (error) {
-      // Silently fail - sparkline is optional
       console.error('Failed to load sparkline:', error);
     }
   };
 
-  // Get gradient background based on strength
-  const getGradientBackground = () => {
-    const strength = node.nodeStrength;
-    if (strength < 20) return 'from-gray-900/5 to-red-900/5';
-    if (strength < 40) return 'from-red-900/5 to-red-600/10';
-    if (strength < 60) return 'from-red-600/5 to-red-400/10';
-    if (strength < 75) return 'from-orange-500/5 to-yellow-500/10';
-    if (strength < 85) return 'from-yellow-500/5 to-green-500/10';
-    if (strength < 95) return 'from-green-600/5 to-green-400/10';
-    return 'from-blue-500/5 to-cyan-500/10';
-  };
+  // Generate fake node ID for clinical look
+  const nodeId = `NODE-${String(node.id).padStart(4, '0')}`;
+  const scanDate = node.lastReviewed
+    ? new Date(node.lastReviewed).toISOString().replace('T', ' ').slice(0, 19)
+    : new Date().toISOString().replace('T', ' ').slice(0, 19);
 
-  // Get border accent color
-  const getBorderAccent = () => {
-    const strength = node.nodeStrength;
-    if (strength < 20) return 'border-l-gray-900';
-    if (strength < 40) return 'border-l-red-900';
-    if (strength < 60) return 'border-l-red-600';
-    if (strength < 75) return 'border-l-orange-500';
-    if (strength < 85) return 'border-l-yellow-500';
-    if (strength < 95) return 'border-l-green-600';
-    return 'border-l-blue-500';
-  };
-
-  const isPoor = node.nodeStrength < 60;
+  // Calculate stability score (fake metric for aesthetics)
+  const stability = ((node.nodeStrength / 100) * 0.8 + Math.random() * 0.2).toFixed(2);
 
   return (
     <div
       onClick={onClick}
-      className={`
-        relative overflow-hidden
-        bg-gradient-to-br ${getGradientBackground()}
-        rounded-2xl shadow-lg p-6
-        cursor-pointer
-        transition-all duration-300
-        hover:shadow-2xl hover:-translate-y-1
-        border-l-4 ${getBorderAccent()}
-        border border-gray-100
-        ${isPoor ? 'ring-2 ring-red-200 ring-opacity-50' : ''}
-        group
-      `}
+      className="relative overflow-hidden bg-lab-bg-card border border-lab-cyan/20 p-5
+                 cursor-pointer transition-all duration-300
+                 hover:border-lab-cyan/60 hover:shadow-glow-sm hover:translate-y-[-2px]
+                 group"
+      style={{ borderRadius: '2px' }}
     >
-      {/* Subtle background pattern for high performers */}
-      {node.nodeStrength >= 95 && (
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500" />
+      {/* Scan line overlay */}
+      <ScanlineOverlay intensity="light" speed="slow" />
+
+      {/* Alert indicator for low strength */}
+      {node.nodeStrength < 60 && (
+        <div className="absolute top-2 right-2 z-20">
+          <div className="w-2 h-2 bg-lab-alert rounded-full animate-pulse shadow-glow-alert" />
         </div>
       )}
 
-      <div className="relative">
-        {/* Header with icon */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Brain className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
-              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                {node.name}
-              </h3>
+      <div className="relative z-10">
+        {/* Header - Clinical Label Style */}
+        <div className="border-b border-lab-cyan/20 pb-3 mb-3">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-lab-cyan" />
+              <span className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider">
+                {nodeId}
+              </span>
             </div>
-            {node.summary && (
-              <p className="text-gray-600 text-sm leading-relaxed mb-3 line-clamp-2">
-                {node.summary}
-              </p>
-            )}
+            <div className="text-xs font-mono text-lab-text-tertiary">
+              STABILITY: {stability}
+            </div>
           </div>
+
+          <h3 className="text-lg font-bold text-lab-text-primary uppercase tracking-wide group-hover:text-lab-cyan transition-colors">
+            {node.name}
+          </h3>
+
+          {node.summary && (
+            <p className="text-lab-text-secondary text-sm leading-relaxed mt-2 line-clamp-2">
+              {node.summary}
+            </p>
+          )}
         </div>
 
         {/* Tags */}
         {node.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="flex flex-wrap gap-2 mb-3">
             {node.tags.map((tag) => (
               <span
                 key={tag}
-                className="text-xs bg-white/80 text-gray-700 px-2.5 py-1 rounded-full
-                          border border-gray-200 font-medium"
+                className="text-xs font-mono bg-lab-bg-elevated text-lab-text-secondary
+                           px-2 py-1 border border-lab-border uppercase tracking-wider"
+                style={{ borderRadius: '2px' }}
               >
                 {tag}
               </span>
@@ -109,72 +102,105 @@ export default function NodeCard({ node, onClick }: Props) {
           </div>
         )}
 
-        {/* Strength Badge with Sparkline */}
-        <div className="mb-4 flex items-center justify-between gap-3">
-          {node.strengthLabel && (
+        {/* Heat Map Strength Bar */}
+        <div className="mb-4">
+          <div className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider mb-2">
+            NEURAL STRENGTH
+          </div>
+          <HeatMapBar value={node.nodeStrength} height="h-8" />
+        </div>
+
+        {/* Neuro Label Badge */}
+        {node.strengthLabel && (
+          <div className="mb-3">
             <NeuroLabel
               strength={node.strengthLabel.strength}
               label={node.strengthLabel.label}
               emoji={node.strengthLabel.emoji}
               size="sm"
             />
-          )}
-          {sparklineData.length > 0 && (
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-3 h-3 text-gray-400" />
-              <Sparkline data={sparklineData} width={80} height={24} />
-            </div>
-          )}
-        </div>
-
-        {/* Progress bar */}
-        <div className="mb-4">
-          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full bg-gradient-to-r ${
-                node.nodeStrength < 20
-                  ? 'from-gray-900 to-red-900'
-                  : node.nodeStrength < 40
-                  ? 'from-red-900 to-red-600'
-                  : node.nodeStrength < 60
-                  ? 'from-red-600 to-red-400'
-                  : node.nodeStrength < 75
-                  ? 'from-orange-500 to-yellow-500'
-                  : node.nodeStrength < 85
-                  ? 'from-yellow-500 to-green-500'
-                  : node.nodeStrength < 95
-                  ? 'from-green-600 to-green-400'
-                  : 'from-blue-500 to-cyan-500'
-              } transition-all duration-500`}
-              style={{ width: `${node.nodeStrength}%` }}
-            />
           </div>
-        </div>
+        )}
 
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+        {/* 7-Day History Mini Heatmap */}
+        {sparklineData.length > 0 && (
+          <div className="mb-4">
+            <div className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider mb-2">
+              7-DAY ACTIVITY
+            </div>
+            <div className="flex gap-1">
+              {sparklineData.map((day, i) => {
+                const height = Math.max((day.strength / 100) * 24, 4);
+                const getColor = (strength: number) => {
+                  if (strength < 20) return 'bg-heatmap-critical';
+                  if (strength < 40) return 'bg-heatmap-weak';
+                  if (strength < 60) return 'bg-heatmap-moderate';
+                  if (strength < 80) return 'bg-heatmap-good';
+                  if (strength < 95) return 'bg-heatmap-strong';
+                  return 'bg-heatmap-mastered';
+                };
+                return (
+                  <div
+                    key={i}
+                    className="flex-1 flex items-end"
+                    style={{ height: '24px' }}
+                  >
+                    <div
+                      className={`w-full ${getColor(day.strength)} transition-all`}
+                      style={{ height: `${height}px`, borderRadius: '1px' }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Clinical Stats Grid */}
+        <div className="grid grid-cols-3 gap-3 mb-3">
           {node._count && (
             <>
-              <div className="flex items-center gap-1.5">
-                <FileText className="w-4 h-4" />
-                <span className="font-medium">{node._count.facts}</span>
-                <span>facts</span>
+              <div className="bg-lab-bg-elevated border border-lab-border p-2" style={{ borderRadius: '2px' }}>
+                <div className="flex items-center gap-1 mb-1">
+                  <FileText className="w-3 h-3 text-lab-cyan" />
+                  <span className="text-xs font-mono text-lab-text-tertiary uppercase">Facts</span>
+                </div>
+                <div className="text-lg font-mono font-bold text-lab-cyan">
+                  {node._count.facts}
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4" />
-                <span className="font-medium">{node._count.cards}</span>
-                <span>cards</span>
+              <div className="bg-lab-bg-elevated border border-lab-border p-2" style={{ borderRadius: '2px' }}>
+                <div className="flex items-center gap-1 mb-1">
+                  <CreditCard className="w-3 h-3 text-lab-cyan" />
+                  <span className="text-xs font-mono text-lab-text-tertiary uppercase">Cards</span>
+                </div>
+                <div className="text-lg font-mono font-bold text-lab-cyan">
+                  {node._count.cards}
+                </div>
+              </div>
+              <div className="bg-lab-bg-elevated border border-lab-border p-2" style={{ borderRadius: '2px' }}>
+                <div className="flex items-center gap-1 mb-1">
+                  <Calendar className="w-3 h-3 text-lab-cyan" />
+                  <span className="text-xs font-mono text-lab-text-tertiary uppercase">Rvws</span>
+                </div>
+                <div className="text-lg font-mono font-bold text-lab-cyan">
+                  {node.totalReviews || 0}
+                </div>
               </div>
             </>
           )}
-          {node.lastReviewed && (
-            <div className="flex items-center gap-1.5 ml-auto">
-              <Calendar className="w-4 h-4" />
-              <span className="text-xs">
-                {new Date(node.lastReviewed).toLocaleDateString()}
+        </div>
+
+        {/* Metadata Footer */}
+        <div className="border-t border-lab-cyan/20 pt-2">
+          <div className="text-xs font-mono text-lab-text-tertiary">
+            <div className="flex justify-between">
+              <span>LAST SCAN: {scanDate} UTC</span>
+              <span className={node.nodeStrength < 60 ? 'text-lab-alert' : 'text-lab-mint'}>
+                {node.nodeStrength < 60 ? 'ATTN REQ' : 'NOMINAL'}
               </span>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

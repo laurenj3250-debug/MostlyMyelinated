@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,34 +11,81 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 text-gray-900 font-sans;
-    @apply dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 dark:text-gray-100;
+    @apply bg-lab-bg-primary text-lab-text-primary font-sans;
     min-height: 100vh;
+    position: relative;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        rgba(0, 217, 255, 0.01) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 217, 255, 0.01) 3px
+      );
+  }
+
+  /* Grid overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(rgba(0, 217, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 217, 255, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Scan line effect */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to bottom,
+      transparent,
+      rgba(0, 217, 255, 0.4),
+      transparent
+    );
+    animation: scan-line 8s linear infinite;
+    pointer-events: none;
+    z-index: 9999;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight;
-    letter-spacing: -0.025em;
+    @apply font-bold tracking-wider uppercase text-lab-text-primary;
+    letter-spacing: 0.05em;
   }
 
   h1 {
-    @apply text-4xl md:text-5xl;
+    @apply text-3xl md:text-4xl font-mono;
     line-height: 1.1;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl;
+    @apply text-2xl md:text-3xl font-mono;
     line-height: 1.2;
   }
 
   h3 {
-    @apply text-2xl md:text-3xl;
+    @apply text-xl md:text-2xl;
     line-height: 1.3;
   }
 
   p {
-    @apply leading-relaxed;
-    line-height: 1.7;
+    @apply leading-relaxed text-lab-text-secondary;
+    line-height: 1.6;
+  }
+
+  /* Monospace for all numbers and data */
+  .stat, .number, .data {
+    @apply font-mono;
   }
 
   /* Mobile optimizations */
@@ -59,91 +106,143 @@
 
 @layer components {
   .btn {
-    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-200
-           shadow-md hover:shadow-lg active:scale-95
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md;
+    @apply px-6 py-3 font-mono font-semibold transition-all duration-200
+           border-2 uppercase tracking-wider text-sm
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    border-radius: 2px;
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white
-           hover:from-blue-700 hover:to-blue-800
-           focus:ring-4 focus:ring-blue-200;
+    @apply bg-lab-cyan/10 text-lab-cyan border-lab-cyan
+           hover:bg-lab-cyan/20 hover:shadow-glow-cyan
+           active:scale-95;
   }
 
   .btn-secondary {
-    @apply bg-white text-gray-800 border-2 border-gray-200
-           hover:bg-gray-50 hover:border-gray-300
-           focus:ring-4 focus:ring-gray-200;
+    @apply bg-lab-bg-card text-lab-text-secondary border-lab-border
+           hover:border-lab-cyan hover:text-lab-cyan
+           hover:shadow-glow-sm;
   }
 
   .btn-danger {
-    @apply bg-gradient-to-r from-red-600 to-red-700 text-white
-           hover:from-red-700 hover:to-red-800
-           focus:ring-4 focus:ring-red-200;
+    @apply bg-lab-alert/10 text-lab-alert border-lab-alert
+           hover:bg-lab-alert/20 hover:shadow-glow-alert
+           active:scale-95;
   }
 
   .btn-success {
-    @apply bg-gradient-to-r from-green-600 to-green-700 text-white
-           hover:from-green-700 hover:to-green-800
-           focus:ring-4 focus:ring-green-200;
+    @apply bg-lab-mint/10 text-lab-mint border-lab-mint
+           hover:bg-lab-mint/20 hover:shadow-glow-mint
+           active:scale-95;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-lg p-6
+    @apply bg-lab-bg-card border border-lab-cyan/20 p-6
            transition-all duration-300
-           hover:shadow-xl
-           border border-gray-100;
-    @apply dark:bg-gray-800/50 dark:border-gray-700;
+           hover:border-lab-cyan/50 hover:shadow-glow-sm
+           relative overflow-hidden;
+    border-radius: 2px;
   }
 
-  .card-gradient {
-    @apply bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6
-           transition-all duration-300
-           hover:shadow-xl hover:scale-[1.02]
-           border border-gray-100;
-    @apply dark:from-gray-800/50 dark:to-gray-800/30 dark:border-gray-700;
+  .card-clinical {
+    @apply card;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 35px,
+        rgba(0, 217, 255, 0.03) 35px,
+        rgba(0, 217, 255, 0.03) 36px
+      );
+  }
+
+  .card-header {
+    @apply font-mono text-xs uppercase tracking-wider text-lab-cyan mb-4
+           border-b border-lab-cyan/20 pb-2;
   }
 
   .input {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl
-           focus:ring-4 focus:ring-blue-100 focus:border-blue-500
+    @apply w-full px-4 py-3 border-2 border-lab-border
+           focus:border-lab-cyan focus:shadow-inner-cyan
            transition-all duration-200
-           bg-white placeholder-gray-400;
-    @apply dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500;
+           bg-lab-bg-primary text-lab-text-primary placeholder-lab-text-tertiary
+           font-mono;
+    border-radius: 2px;
   }
 
   .label {
-    @apply block text-sm font-semibold text-gray-700 mb-2 tracking-wide;
-    @apply dark:text-gray-300;
+    @apply block text-xs font-mono font-semibold text-lab-text-secondary mb-2
+           uppercase tracking-wider;
   }
 
-  /* Stat card styles */
-  .stat-card {
-    @apply card-gradient text-center;
+  /* Clinical data table */
+  .data-table {
+    @apply w-full font-mono text-sm;
   }
 
-  .stat-value {
-    @apply text-4xl md:text-5xl font-bold tracking-tight;
+  .data-table th {
+    @apply text-left p-2 border-b-2 border-lab-cyan/30 text-lab-cyan
+           uppercase text-xs tracking-wider;
   }
 
-  .stat-label {
-    @apply text-sm font-medium text-gray-600 uppercase tracking-wider mt-1;
+  .data-table td {
+    @apply p-2 border-b border-lab-border text-lab-text-primary;
+  }
+
+  /* Monitor display */
+  .monitor {
+    @apply bg-black border-2 border-lab-cyan p-4 font-mono relative overflow-hidden;
+    border-radius: 2px;
+    box-shadow: inset 0 0 20px rgba(0, 217, 255, 0.1);
+  }
+
+  .monitor-label {
+    @apply text-xs uppercase tracking-wider text-lab-cyan mb-1;
+  }
+
+  .monitor-value {
+    @apply text-2xl font-bold text-lab-cyan;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+  }
+
+  /* Heat map bar */
+  .heatmap-bar {
+    @apply h-6 relative overflow-hidden bg-black;
+    border-radius: 2px;
+  }
+
+  /* Clinical button styles */
+  .btn-clinical-good {
+    @apply bg-black border-2 border-lab-cyan text-lab-cyan
+           hover:bg-lab-cyan/20 hover:shadow-glow-cyan;
+  }
+
+  .btn-clinical-hard {
+    @apply bg-black border-2 border-orange-500 text-orange-500
+           hover:bg-orange-500/20 hover:shadow-glow-alert;
+  }
+
+  .btn-clinical-again {
+    @apply bg-black border-2 border-lab-alert text-lab-alert
+           hover:bg-lab-alert/20 hover:shadow-glow-alert;
+  }
+
+  .btn-clinical-easy {
+    @apply bg-black border-2 border-lab-mint text-lab-mint
+           hover:bg-lab-mint/20 hover:shadow-glow-mint;
   }
 
   /* Loading skeleton */
   .skeleton {
-    @apply animate-pulse bg-gray-200 rounded;
+    @apply animate-pulse bg-lab-bg-elevated;
+    border-radius: 2px;
   }
 
-  /* Badge styles */
-  .badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-           font-semibold text-xs uppercase tracking-wider;
-  }
-
-  /* Hover lift effect */
-  .lift-on-hover {
-    @apply transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl;
+  /* Badge styles - Certificate style */
+  .badge-cert {
+    @apply bg-lab-bg-elevated border border-lab-cyan/30 px-4 py-3
+           font-mono text-xs uppercase tracking-wider
+           hover:border-lab-cyan/60 hover:shadow-glow-sm transition-all;
   }
 
   /* Page transitions */
@@ -151,9 +250,15 @@
     @apply animate-fade-in;
   }
 
-  /* Pulse animation for important elements */
-  .pulse-attention {
-    @apply animate-pulse-glow;
+  /* Data visualization containers */
+  .chart-container {
+    @apply bg-black border border-lab-cyan/20 p-4;
+    border-radius: 2px;
+  }
+
+  /* Glowing text effect */
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
   }
 }
 
@@ -163,16 +268,12 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r;
   }
 
-  .text-gradient-blue {
-    @apply text-gradient from-blue-600 to-cyan-500;
+  .text-gradient-heat {
+    @apply text-gradient from-blue-500 via-yellow-500 to-red-500;
   }
 
-  .text-gradient-green {
-    @apply text-gradient from-green-600 to-emerald-500;
-  }
-
-  .text-gradient-red {
-    @apply text-gradient from-red-600 to-pink-500;
+  .text-gradient-cyan {
+    @apply text-gradient from-lab-cyan to-lab-mint;
   }
 
   /* Scrollbar styling */
@@ -182,10 +283,97 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    @apply bg-gray-100 rounded;
+    @apply bg-lab-bg-primary;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded hover:bg-gray-400;
+    @apply bg-lab-cyan/30;
+    border-radius: 2px;
   }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-lab-cyan/50;
+  }
+
+  /* Clinical text styles */
+  .text-clinical {
+    @apply font-mono uppercase tracking-wider;
+  }
+
+  /* Scan effect overlay */
+  .scan-overlay {
+    position: relative;
+  }
+
+  .scan-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 217, 255, 0.03) 2px,
+      rgba(0, 217, 255, 0.03) 3px
+    );
+    pointer-events: none;
+  }
+}
+
+/* Custom animations */
+@keyframes scan-line {
+  0% {
+    top: -100%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+/* Data flicker for numbers */
+@keyframes data-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Neural pulse */
+@keyframes neural-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 5px rgba(0, 217, 255, 0.5),
+      inset 0 0 5px rgba(0, 217, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(0, 217, 255, 0.8),
+      inset 0 0 10px rgba(0, 217, 255, 0.4);
+  }
+}
+
+/* Heat map gradients */
+.heatmap-critical {
+  background: linear-gradient(90deg, #1a0033, #4d0099);
+}
+
+.heatmap-weak {
+  background: linear-gradient(90deg, #000066, #0099ff);
+}
+
+.heatmap-moderate {
+  background: linear-gradient(90deg, #006666, #00cccc);
+}
+
+.heatmap-good {
+  background: linear-gradient(90deg, #ffaa00, #ff6600);
+}
+
+.heatmap-strong {
+  background: linear-gradient(90deg, #ff3300, #ff0000);
+}
+
+.heatmap-mastered {
+  background: linear-gradient(90deg, #ff0066, #ffff00);
 }

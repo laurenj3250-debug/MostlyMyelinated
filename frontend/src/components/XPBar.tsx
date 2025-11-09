@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CountUp from 'react-countup';
+import MiniChart from './MiniChart';
 
 interface XPBarProps {
   level: number;
@@ -12,8 +13,8 @@ interface XPBarProps {
 }
 
 /**
- * MAXIMUM DOPAMINE XP BAR
- * Always visible progress bar showing level and XP
+ * NEURAL ACTIVITY MONITOR - Clinical XP Display
+ * Styled like an EEG/activity monitor with cyan glow effects
  */
 export default function XPBar({
   level,
@@ -24,74 +25,172 @@ export default function XPBar({
   showDetails = false,
 }: XPBarProps) {
   const [prevXP, setPrevXP] = useState(xp);
+  const [xpHistory, setXpHistory] = useState<Array<{ value: number }>>([]);
   const progress = (xp / xpToNextLevel) * 100;
   const navigate = useNavigate();
 
   useEffect(() => {
     setPrevXP(xp);
+    // Simulate XP history for sparkline (in real app, would track actual history)
+    setXpHistory(prev => {
+      const newHistory = [...prev, { value: xp }].slice(-20);
+      return newHistory;
+    });
   }, [xp]);
+
+  // Generate fake EEG-like data for visual effect
+  const generateEEGData = () => {
+    return Array.from({ length: 30 }, () => ({
+      value: 50 + Math.random() * 30 * (progress / 100),
+    }));
+  };
 
   return (
     <div
-      className="w-full bg-gray-800 rounded-lg p-3 shadow-lg border border-purple-500/30 hover:border-purple-500/60 transition-all cursor-pointer"
+      className="w-full bg-black border-2 border-lab-cyan/50 p-4 shadow-glow-cyan cursor-pointer hover:border-lab-cyan hover:shadow-glow-md transition-all duration-300 relative overflow-hidden"
       onClick={() => navigate('/badges')}
+      style={{ borderRadius: '2px' }}
     >
-      <div className="flex items-center justify-between mb-2">
+      {/* Scan line overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              0deg,
+              transparent,
+              transparent 2px,
+              rgba(0, 217, 255, 0.02) 2px,
+              rgba(0, 217, 255, 0.02) 3px
+            )`,
+          }}
+        />
+      </div>
+
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-3 relative z-10">
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-purple-400">
-              LVL {level}
-            </span>
-            <div className="h-6 w-px bg-purple-500/30"></div>
-            <span className="text-sm text-purple-300 font-medium max-w-xs truncate">
-              {title}
-            </span>
+          <div className="flex items-center space-x-3">
+            {/* Level Display */}
+            <div className="flex flex-col">
+              <span className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider">
+                LEVEL
+              </span>
+              <span className="text-2xl font-mono font-bold text-lab-cyan text-glow">
+                {String(level).padStart(2, '0')}
+              </span>
+            </div>
+
+            <div className="h-8 w-px bg-lab-cyan/30"></div>
+
+            {/* Title/Status */}
+            <div className="flex flex-col">
+              <span className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider">
+                COGNITIVE STATUS
+              </span>
+              <span className="text-sm font-mono text-lab-text-primary uppercase tracking-wide">
+                {title}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-400">
+        {/* XP Counter */}
+        <div className="flex flex-col items-end">
+          <span className="text-xs font-mono text-lab-cyan/70 uppercase tracking-wider">
+            NEURAL POINTS
+          </span>
+          <span className="text-sm font-mono text-lab-cyan">
             <CountUp
               start={prevXP}
               end={xp}
               duration={0.8}
               separator=","
             />
-            /{xpToNextLevel.toLocaleString()} XP
+            /{xpToNextLevel.toLocaleString()}
           </span>
         </div>
       </div>
 
-      {/* XP Progress Bar */}
-      <div className="relative h-6 bg-gray-900 rounded-full overflow-hidden border border-purple-500/20">
-        {/* Background glow */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 animate-pulse"></div>
+      {/* Mini EEG Chart */}
+      {xpHistory.length > 1 && (
+        <div className="mb-3 h-8 opacity-50">
+          <MiniChart
+            data={generateEEGData()}
+            type="line"
+            color="#00d9ff"
+            height={32}
+          />
+        </div>
+      )}
 
-        {/* Progress fill with gradient */}
-        <div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 transition-all duration-700 ease-out"
-          style={{ width: `${Math.min(progress, 100)}%` }}
-        >
-          {/* Shimmer effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+      {/* XP Progress Bar - Neural Activity Style */}
+      <div className="relative h-8 bg-black border border-lab-cyan/30 overflow-hidden">
+        {/* Grid background */}
+        <div className="absolute inset-0">
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 9px,
+                rgba(0, 217, 255, 0.2) 9px,
+                rgba(0, 217, 255, 0.2) 10px
+              )`,
+            }}
+          />
         </div>
 
-        {/* Percentage text */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-bold text-white drop-shadow-lg">
+        {/* Progress fill with glow */}
+        <div
+          className="absolute inset-y-0 left-0 bg-lab-cyan/20 transition-all duration-700 ease-out"
+          style={{ width: `${Math.min(progress, 100)}%` }}
+        >
+          {/* Glowing edge */}
+          <div className="absolute inset-y-0 right-0 w-2 bg-lab-cyan animate-pulse-cyan"></div>
+
+          {/* Activity waves */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-lab-cyan/30 to-transparent animate-shimmer"></div>
+        </div>
+
+        {/* Progress text */}
+        <div className="absolute inset-0 flex items-center justify-between px-3">
+          <span className="text-xs font-mono font-bold text-lab-cyan/70 uppercase">
+            PROGRESS
+          </span>
+          <span className="text-xs font-mono font-bold text-lab-cyan text-glow">
             {progress.toFixed(1)}%
           </span>
         </div>
 
-        {/* Border glow on hover */}
-        <div className="absolute inset-0 border-2 border-purple-500/0 hover:border-purple-500/50 rounded-full transition-all"></div>
+        {/* Tick marks at 25% intervals */}
+        {[25, 50, 75].map(tick => (
+          <div
+            key={tick}
+            className="absolute top-0 bottom-0 w-px bg-lab-cyan/20"
+            style={{ left: `${tick}%` }}
+          />
+        ))}
       </div>
 
+      {/* Details Section */}
       {showDetails && (
-        <div className="mt-2 pt-2 border-t border-gray-700">
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>Total XP Earned: {totalXpEarned.toLocaleString()}</span>
-            <span>Next level in {(xpToNextLevel - xp).toLocaleString()} XP</span>
+        <div className="mt-3 pt-3 border-t border-lab-cyan/20 relative z-10">
+          <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+            <div>
+              <span className="text-lab-cyan/70 uppercase">Total Earned:</span>
+              <span className="text-lab-cyan ml-2">{totalXpEarned.toLocaleString()}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-lab-cyan/70 uppercase">To Next:</span>
+              <span className="text-lab-cyan ml-2">{(xpToNextLevel - xp).toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Fake diagnostic data */}
+          <div className="mt-2 text-xs font-mono text-lab-text-tertiary">
+            <div>SYNC: STABLE | LAT: 12ms | FREQ: 42Hz</div>
           </div>
         </div>
       )}

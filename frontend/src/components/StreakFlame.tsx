@@ -5,146 +5,102 @@ interface StreakFlameProps {
 }
 
 /**
- * MAXIMUM DOPAMINE STREAK FLAME
- * Animated flame visualization that grows with streak
+ * STREAK MONITOR - Clinical streak display
+ * No emojis, pure data readout with clinical styling
  */
 export default function StreakFlame({
   streak,
   size = 'medium',
   showNumber = true,
 }: StreakFlameProps) {
-  // Determine flame visual based on streak
-  const getFlameStyle = () => {
-    if (streak === 0) {
-      return {
-        emoji: '💀',
-        label: 'Dead',
-        color: 'text-gray-500',
-        bgColor: 'bg-gray-900',
-        borderColor: 'border-gray-700',
-        animate: false,
-      };
-    } else if (streak < 7) {
-      return {
-        emoji: '🔥',
-        label: 'Warming up',
-        color: 'text-orange-500',
-        bgColor: 'bg-gradient-to-t from-orange-900/50 to-orange-600/30',
-        borderColor: 'border-orange-500/50',
-        animate: true,
-      };
-    } else if (streak < 30) {
-      return {
-        emoji: '🔥🔥',
-        label: 'On fire!',
-        color: 'text-red-500',
-        bgColor: 'bg-gradient-to-t from-red-900/50 to-red-600/30',
-        borderColor: 'border-red-500/50',
-        animate: true,
-      };
-    } else if (streak < 100) {
-      return {
-        emoji: '🔥🔥🔥',
-        label: 'BLAZING!',
-        color: 'text-red-600',
-        bgColor: 'bg-gradient-to-t from-red-900/70 to-yellow-600/50',
-        borderColor: 'border-red-600/70',
-        animate: true,
-      };
-    } else {
-      return {
-        emoji: '💥🔥🔥🔥💥',
-        label: 'LEGENDARY',
-        color: 'text-yellow-400',
-        bgColor: 'bg-gradient-to-t from-red-900 via-orange-600 to-yellow-500',
-        borderColor: 'border-yellow-500',
-        animate: true,
-      };
-    }
+  const isActive = streak > 0;
+
+  // Determine status level
+  const getStatus = () => {
+    if (streak === 0) return { label: 'INACTIVE', color: 'text-lab-text-tertiary', border: 'border-lab-text-tertiary', glow: '' };
+    if (streak < 7) return { label: 'ACTIVE', color: 'text-lab-mint', border: 'border-lab-mint', glow: 'shadow-glow-mint' };
+    if (streak < 30) return { label: 'SUSTAINED', color: 'text-lab-cyan', border: 'border-lab-cyan', glow: 'shadow-glow-cyan' };
+    if (streak < 100) return { label: 'EXCELLENT', color: 'text-lab-cyan', border: 'border-lab-cyan', glow: 'shadow-glow-cyan animate-pulse-cyan' };
+    return { label: 'LEGENDARY', color: 'text-lab-mint', border: 'border-lab-mint', glow: 'shadow-glow-mint animate-pulse-cyan' };
   };
 
   const sizeClasses = {
-    small: 'text-2xl p-2',
-    medium: 'text-4xl p-3',
-    large: 'text-6xl p-4',
+    small: 'px-3 py-2',
+    medium: 'px-4 py-3',
+    large: 'px-6 py-4',
   };
 
   const numberSize = {
-    small: 'text-lg',
-    medium: 'text-2xl',
-    large: 'text-4xl',
+    small: 'text-2xl',
+    medium: 'text-3xl',
+    large: 'text-5xl',
   };
 
-  const flameStyle = getFlameStyle();
+  const status = getStatus();
 
   return (
-    <div className="inline-flex flex-col items-center space-y-1">
-      <div
-        className={`
-          relative
-          ${flameStyle.bgColor}
-          ${flameStyle.borderColor}
-          border-2 rounded-2xl
-          ${sizeClasses[size]}
-          ${flameStyle.animate ? 'animate-flicker' : ''}
-          shadow-lg
-          transition-all duration-300
-          hover:scale-110
-          cursor-pointer
-        `}
-        title={`${streak} day streak - ${flameStyle.label}`}
-      >
-        <div className={`${flameStyle.animate ? 'animate-float' : ''}`}>
-          {flameStyle.emoji}
-        </div>
-
-        {streak >= 100 && (
-          <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 via-red-500 to-yellow-500 rounded-2xl opacity-75 blur animate-pulse"></div>
-        )}
+    <div
+      className={`
+        inline-flex items-center gap-4
+        bg-black border-2 ${status.border} ${status.glow}
+        ${sizeClasses[size]}
+        transition-all duration-300
+        hover:scale-105
+        cursor-pointer
+        relative
+      `}
+      style={{ borderRadius: '2px' }}
+      title={`${streak} day streak - ${status.label}`}
+    >
+      {/* Scan line overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              0deg,
+              transparent,
+              transparent 2px,
+              rgba(0, 217, 255, 0.05) 2px,
+              rgba(0, 217, 255, 0.05) 3px
+            )`,
+          }}
+        />
       </div>
 
-      {showNumber && (
-        <div className="flex flex-col items-center">
-          <span className={`${numberSize[size]} font-black ${flameStyle.color}`}>
-            {streak}
+      <div className="relative z-10 flex items-center gap-4">
+        {/* Streak count */}
+        <div className="flex flex-col">
+          <span className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider">
+            STREAK
           </span>
-          <span className="text-xs text-gray-400 uppercase tracking-wider">
-            {streak === 1 ? 'day' : 'days'}
-          </span>
-        </div>
-      )}
-
-      {streak >= 7 && (
-        <div className="text-xs font-bold text-center max-w-[120px]">
-          <span className={flameStyle.color}>
-            {flameStyle.label}
+          {showNumber && (
+            <span className={`${numberSize[size]} font-mono font-bold ${status.color} text-glow leading-none`}>
+              {String(streak).padStart(2, '0')}
+            </span>
+          )}
+          <span className="text-xs font-mono text-lab-text-tertiary uppercase mt-1">
+            {streak === 1 ? 'DAY' : 'DAYS'}
           </span>
         </div>
-      )}
 
-      <style>{`
-        @keyframes flicker {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.9; }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
-        }
-        @keyframes glow {
-          0%, 100% { filter: drop-shadow(0 0 5px currentColor); }
-          50% { filter: drop-shadow(0 0 15px currentColor); }
-        }
-        .animate-flicker {
-          animation: flicker 1.5s ease-in-out infinite;
-        }
-        .animate-float {
-          animation: float 2s ease-in-out infinite;
-        }
-        .animate-glow {
-          animation: glow 2s ease-in-out infinite;
-        }
-      `}</style>
+        <div className="h-12 w-px bg-lab-cyan/30"></div>
+
+        {/* Status */}
+        <div className="flex flex-col">
+          <span className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider">
+            STATUS
+          </span>
+          <span className={`text-sm font-mono font-bold ${status.color} uppercase tracking-wide`}>
+            {status.label}
+          </span>
+        </div>
+      </div>
+
+      {/* Activity pulse indicator for active streaks */}
+      {isActive && streak >= 7 && (
+        <div className={`absolute -top-1 -right-1 w-3 h-3 ${status.border.replace('border-', 'bg-')} rounded-full animate-pulse`} />
+      )}
     </div>
   );
 }
