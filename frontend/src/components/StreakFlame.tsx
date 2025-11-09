@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface StreakFlameProps {
   streak: number;
   size?: 'small' | 'medium' | 'large';
