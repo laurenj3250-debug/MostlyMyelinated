@@ -180,7 +180,7 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
 
   if (!user) return [];
 
-  const currentBadges = (user.badges as any[]) || [];
+  const currentBadges = (user.badges as unknown as Badge[]) || [];
   const earnedBadgeIds = new Set(currentBadges.map((b: any) => b.id));
 
   const newBadges: Badge[] = [];
@@ -209,7 +209,7 @@ export async function checkAndAwardBadges(userId: string): Promise<Badge[]> {
   if (newBadges.length > 0) {
     await prisma.user.update({
       where: { id: userId },
-      data: { badges: currentBadges as any },
+      data: { badges: currentBadges as unknown as any },
     });
   }
 
@@ -225,7 +225,7 @@ export async function getAllBadges(userId: string) {
     select: { badges: true },
   });
 
-  const earnedBadges = (user?.badges as Badge[]) || [];
+  const earnedBadges = (user?.badges as unknown as Badge[]) || [];
   const earnedIds = new Set(earnedBadges.map((b) => b.id));
 
   const allBadges = BADGE_DEFINITIONS.map((def) => {
