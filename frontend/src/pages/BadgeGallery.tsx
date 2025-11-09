@@ -108,6 +108,31 @@ export default function BadgeGallery() {
           </div>
         </div>
 
+        {/* Empty State: No badges earned */}
+        {earnedCount === 0 && (
+          <div className="bg-black border-2 border-purple-500/50 p-8 text-center max-w-2xl mx-auto mb-8" style={{ borderRadius: '8px' }}>
+            <div className="text-6xl mb-4">❌</div>
+            <h3 className="text-2xl font-bold text-purple-400 mb-3">
+              BADGE STATUS: PATHETIC
+            </h3>
+            <p className="text-lg text-purple-300 mb-2">
+              You have earned exactly zero (0) badges.
+            </p>
+            <p className="text-lg text-purple-300 mb-2">
+              Your trophy case is a monument to inactivity.
+            </p>
+            <p className="text-sm text-gray-400 mb-6">
+              Study some cards. Earn badges. Stop embarrassing yourself.
+            </p>
+            <button
+              onClick={() => navigate('/study')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 px-8 py-3 rounded-lg font-bold text-lg transition-all transform hover:scale-105"
+            >
+              START EARNING BADGES
+            </button>
+          </div>
+        )}
+
         {/* Filters */}
         <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-6 md:mb-8">
           <button
@@ -195,9 +220,15 @@ export default function BadgeGallery() {
           ))}
         </div>
 
-        {filteredBadges.length === 0 && (
-          <div className="text-center text-gray-400 text-xl py-12">
-            No badges match your filters
+        {filteredBadges.length === 0 && filter !== 'all' && (
+          <div className="text-center py-12">
+            <div className="text-5xl mb-4">🔍</div>
+            <div className="text-xl font-bold text-gray-300 mb-2">
+              SEARCH PARAMETERS YIELDED NO RESULTS
+            </div>
+            <div className="text-gray-400">
+              Adjust your filters or earn more badges to populate this view.
+            </div>
           </div>
         )}
 

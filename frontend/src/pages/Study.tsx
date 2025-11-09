@@ -32,7 +32,11 @@ export default function Study() {
   const loadSession = async () => {
     try {
       let res;
-      if (mode === 'disasters') {
+      if (mode === 'weak-drill') {
+        // Load weak drill session (nodes < 40% strength)
+        res = await study.getWeakDrill(40, 50);
+        setSessionTitle('🚨 CRITICAL NODE INTERVENTION PROTOCOL');
+      } else if (mode === 'disasters') {
         // Load weak nodes session
         res = await study.getWeakNodesSession(50, 60);
         setSessionTitle('DISASTER MODE: Weak Nodes Only');
@@ -110,15 +114,22 @@ export default function Study() {
 
   if (session.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-        <div className="card-gradient text-center max-w-md animate-scale-in">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-3xl font-bold mb-4 text-gradient-green">All Caught Up!</h2>
-          <p className="text-gray-600 mb-6 text-lg">
-            No cards due right now. Your neurons are well-myelinated!
+      <div className="flex items-center justify-center min-h-screen bg-lab-background">
+        <div className="bg-black border-2 border-lab-mint/50 p-8 text-center max-w-md" style={{ borderRadius: '2px' }}>
+          <div className="text-6xl mb-4">✓</div>
+          <h2 className="text-2xl font-mono uppercase text-lab-mint mb-4">ALL SYNAPSES FIRING</h2>
+          <p className="text-lg font-mono text-lab-text-primary mb-2">
+            No cards due. All neural pathways functioning within normal parameters.
           </p>
-          <button onClick={() => navigate('/')} className="btn btn-primary">
-            Back to Dashboard
+          <p className="text-sm font-mono text-lab-text-tertiary mb-6">
+            Myelin integrity: OPTIMAL
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all"
+            style={{ borderRadius: '2px' }}
+          >
+            RETURN TO DASHBOARD
           </button>
         </div>
       </div>
@@ -132,7 +143,7 @@ export default function Study() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       {/* Header */}
       <header className={`shadow-xl ${
-        mode === 'disasters' || mode === 'drill'
+        mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
           ? 'bg-gradient-to-r from-red-600 to-pink-600'
           : 'bg-gradient-to-r from-blue-600 to-purple-600'
       }`}>
@@ -150,9 +161,9 @@ export default function Study() {
               <span>←</span> Quit
             </button>
             <div className="text-center flex-1">
-              {(mode === 'disasters' || mode === 'drill') && (
+              {(mode === 'weak-drill' || mode === 'disasters' || mode === 'drill') && (
                 <div className="text-sm font-bold text-white/90 mb-2 animate-pulse">
-                  🚨 {sessionTitle}
+                  {sessionTitle}
                 </div>
               )}
               <div className="text-2xl md:text-3xl font-black text-white mb-1">
@@ -169,7 +180,7 @@ export default function Study() {
           <div className="mt-6 h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur">
             <div
               className={`h-full ${
-                mode === 'disasters' || mode === 'drill'
+                mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
                   ? 'bg-gradient-to-r from-yellow-400 to-green-400'
                   : 'bg-gradient-to-r from-green-400 to-blue-400'
               } transition-all duration-500 shadow-lg`}
