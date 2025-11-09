@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Node } from '../types';
-import NeuroLabel from './NeuroLabel';
 
 interface SkillTreeProps {
   nodes: Node[];
