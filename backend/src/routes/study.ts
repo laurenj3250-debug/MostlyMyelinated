@@ -7,7 +7,6 @@ import {
   getStudyStats,
 } from '../services/studySession';
 import { checkAndAwardBadges, getAllBadges } from '../services/badges';
-import { getNodeStrengthLabel } from '../services/nodeStrength';
 
 const router = Router();
 const prisma = new PrismaClient();
