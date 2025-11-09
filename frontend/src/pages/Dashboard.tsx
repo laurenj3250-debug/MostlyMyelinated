@@ -38,22 +38,81 @@ export default function Dashboard() {
         achievementsRes,
         levelRes
       ] = await Promise.all([
-        studyApi.getNeuroStatus(),
-        nodesApi.getCritical(5),
-        nodesApi.getAll(),
-        studyApi.getStats(),
-        studyApi.getAchievements(),
-        studyApi.getLevelProgress()
+        studyApi.getNeuroStatus().catch(() => null),
+        nodesApi.getCritical(5).catch(() => ({ data: { nodes: [], totalNodes: 0 } })),
+        nodesApi.getAll().catch(() => ({ data: [] })),
+        studyApi.getStats().catch(() => null),
+        studyApi.getAchievements().catch(() => ({ data: { achievements: [] } })),
+        studyApi.getLevelProgress().catch(() => null)
       ]);
 
-      setNeuroStatus(neuroStatusRes.data);
-      setCriticalNodes(criticalNodesRes.data.nodes || []);
-      setAllNodes(allNodesRes.data);
-      setStudyStats(statsRes.data);
-      setAchievements(achievementsRes.data.achievements || []);
-      setUserLevel(levelRes.data);
+      // Set data with fallbacks
+      setNeuroStatus(neuroStatusRes?.data || {
+        overallScore: 0,
+        statusLabel: 'UNKNOWN',
+        nodeDistribution: {
+          brainDead: 0,
+          lmnTetraplegic: 0,
+          nonAmbulatoryAtaxic: 0,
+          ambulatoryAtaxic: 0,
+          mildParesis: 0,
+          bar: 0,
+          hyperreflexic: 0
+        },
+        dueCards: 0,
+        newCards: 0,
+        weakNodeCount: 0,
+        totalNodes: 0
+      });
+      setCriticalNodes(criticalNodesRes?.data?.nodes || []);
+      setAllNodes(allNodesRes?.data || []);
+      setStudyStats(statsRes?.data || {
+        reviewsToday: 0,
+        newCardsToday: 0,
+        xpToday: 0
+      });
+      setAchievements(achievementsRes?.data?.achievements || []);
+      setUserLevel(levelRes?.data || {
+        level: 1,
+        xp: 0,
+        xpToNextLevel: 100,
+        title: 'Intern',
+        totalXpEarned: 0,
+        streak: 0
+      });
     } catch (error) {
       console.error('Error loading dashboard:', error);
+      // Set default values on complete failure
+      setNeuroStatus({
+        overallScore: 0,
+        statusLabel: 'UNKNOWN',
+        nodeDistribution: {
+          brainDead: 0,
+          lmnTetraplegic: 0,
+          nonAmbulatoryAtaxic: 0,
+          ambulatoryAtaxic: 0,
+          mildParesis: 0,
+          bar: 0,
+          hyperreflexic: 0
+        },
+        dueCards: 0,
+        newCards: 0,
+        weakNodeCount: 0,
+        totalNodes: 0
+      });
+      setUserLevel({
+        level: 1,
+        xp: 0,
+        xpToNextLevel: 100,
+        title: 'Intern',
+        totalXpEarned: 0,
+        streak: 0
+      });
+      setStudyStats({
+        reviewsToday: 0,
+        newCardsToday: 0,
+        xpToday: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -91,28 +150,32 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* XP Bar */}
-        {userLevel && (
-          <XPBar
-            level={userLevel.level}
-            xp={userLevel.xp}
-            xpToNextLevel={userLevel.xpToNextLevel}
-            title={userLevel.title}
-            totalXpEarned={userLevel.totalXpEarned}
-          />
-        )}
+        <XPBar
+          level={userLevel?.level || 1}
+          xp={userLevel?.xp || 0}
+          xpToNextLevel={userLevel?.xpToNextLevel || 100}
+          title={userLevel?.title || 'Intern'}
+          totalXpEarned={userLevel?.totalXpEarned || 0}
+        />
 
         {/* Hero - Neuro Status */}
-        {neuroStatus && (
-          <NeuroStatusHero
-            overallScore={neuroStatus.overallScore}
-            statusLabel={neuroStatus.statusLabel}
-            nodeDistribution={neuroStatus.nodeDistribution}
-            dueCards={neuroStatus.dueCards}
-            newCards={neuroStatus.newCards}
-            weakNodeCount={neuroStatus.weakNodeCount}
-            totalNodes={neuroStatus.totalNodes}
-          />
-        )}
+        <NeuroStatusHero
+          overallScore={neuroStatus?.overallScore || 0}
+          statusLabel={neuroStatus?.statusLabel || 'UNKNOWN'}
+          nodeDistribution={neuroStatus?.nodeDistribution || {
+            brainDead: 0,
+            lmnTetraplegic: 0,
+            nonAmbulatoryAtaxic: 0,
+            ambulatoryAtaxic: 0,
+            mildParesis: 0,
+            bar: 0,
+            hyperreflexic: 0
+          }}
+          dueCards={neuroStatus?.dueCards || 0}
+          newCards={neuroStatus?.newCards || 0}
+          weakNodeCount={neuroStatus?.weakNodeCount || 0}
+          totalNodes={neuroStatus?.totalNodes || 0}
+        />
 
         {/* Critical Nodes Panel */}
         {neuroStatus && neuroStatus.totalNodes > 0 && (
@@ -190,16 +253,14 @@ export default function Dashboard() {
         </div>
 
         {/* Achievement Summary */}
-        {studyStats && (
-          <AchievementSummary
-            reviewsToday={studyStats.reviewsToday || 0}
-            reviewsGoal={50}
-            newCardsToday={studyStats.newCardsToday || 0}
-            newCardsGoal={10}
-            xpToday={studyStats.xpToday || 0}
-            achievements={achievements}
-          />
-        )}
+        <AchievementSummary
+          reviewsToday={studyStats?.reviewsToday || 0}
+          reviewsGoal={50}
+          newCardsToday={studyStats?.newCardsToday || 0}
+          newCardsGoal={10}
+          xpToday={studyStats?.xpToday || 0}
+          achievements={achievements || []}
+        />
       </div>
     </div>
   );
