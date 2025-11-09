@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface HeatMapBarProps {
   value: number; // 0-100
   showLabel?: boolean;

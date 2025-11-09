@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Node } from '../types';
 import NeuroLabel from './NeuroLabel';
-import Sparkline from './Sparkline';
 import HeatMapBar from './HeatMapBar';
 import ScanlineOverlay from './ScanlineOverlay';
 import { Brain, Calendar, FileText, CreditCard } from 'lucide-react';
@@ -184,7 +183,7 @@ export default function NodeCard({ node, onClick }: Props) {
                   <span className="text-xs font-mono text-lab-text-tertiary uppercase">Rvws</span>
                 </div>
                 <div className="text-lg font-mono font-bold text-lab-cyan">
-                  {node.totalReviews || 0}
+                  {node._count?.cards || 0}
                 </div>
               </div>
             </>

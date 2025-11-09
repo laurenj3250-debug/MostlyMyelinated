@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ScanlineOverlayProps {
   intensity?: 'light' | 'medium' | 'heavy';
   speed?: 'slow' | 'normal' | 'fast';

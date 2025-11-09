@@ -1,4 +1,3 @@
-import React from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, YAxis } from 'recharts';
 
 interface MiniChartProps {
