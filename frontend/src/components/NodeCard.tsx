@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Node } from '../types';
 import NeuroLabel from './NeuroLabel';
-import { Brain, Calendar, FileText, CreditCard } from 'lucide-react';
+import Sparkline from './Sparkline';
+import { Brain, Calendar, FileText, CreditCard, TrendingUp } from 'lucide-react';
+import { nodes } from '../services/api';
 
 interface Props {
   node: Node;
@@ -8,6 +11,22 @@ interface Props {
 }
 
 export default function NodeCard({ node, onClick }: Props) {
+  const [sparklineData, setSparklineData] = useState<Array<{ date: string; strength: number }>>([]);
+
+  useEffect(() => {
+    loadSparkline();
+  }, [node.id]);
+
+  const loadSparkline = async () => {
+    try {
+      const res = await nodes.getStrengthHistory(node.id, 7);
+      setSparklineData(res.data.history);
+    } catch (error) {
+      // Silently fail - sparkline is optional
+      console.error('Failed to load sparkline:', error);
+    }
+  };
+
   // Get gradient background based on strength
   const getGradientBackground = () => {
     const strength = node.nodeStrength;
@@ -90,8 +109,8 @@ export default function NodeCard({ node, onClick }: Props) {
           </div>
         )}
 
-        {/* Strength Badge */}
-        <div className="mb-4">
+        {/* Strength Badge with Sparkline */}
+        <div className="mb-4 flex items-center justify-between gap-3">
           {node.strengthLabel && (
             <NeuroLabel
               strength={node.strengthLabel.strength}
@@ -99,6 +118,12 @@ export default function NodeCard({ node, onClick }: Props) {
               emoji={node.strengthLabel.emoji}
               size="sm"
             />
+          )}
+          {sparklineData.length > 0 && (
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-3 h-3 text-gray-400" />
+              <Sparkline data={sparklineData} width={80} height={24} />
+            </div>
           )}
         </div>
 

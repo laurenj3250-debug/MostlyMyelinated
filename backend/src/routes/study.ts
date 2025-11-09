@@ -195,6 +195,193 @@ router.get('/badges', async (req: AuthRequest, res) => {
   }
 });
 
+// Get achievement progress
+router.get('/achievements', async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+
+    // Get all nodes to calculate achievement progress
+    const allNodes = await prisma.node.findMany({
+      where: { userId },
+      select: { nodeStrength: true },
+    });
+
+    // Calculate achievement progress
+    const totalNodes = allNodes.length;
+    const cordCompetent = allNodes.filter(n => n.nodeStrength >= 70).length;
+    const brainStemBoss = allNodes.filter(n => n.nodeStrength >= 85).length;
+    const hyperreflexicHero = allNodes.filter(n => n.nodeStrength >= 95).length;
+
+    // Get streak from stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let streak = 0;
+    let checkDate = new Date(today);
+
+    while (true) {
+      const nextDay = new Date(checkDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const reviewsOnDay = await prisma.review.count({
+        where: {
+          userId,
+          reviewedAt: {
+            gte: checkDate,
+            lt: nextDay,
+          },
+        },
+      });
+
+      if (reviewsOnDay > 0) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    // Get total cards reviewed
+    const totalReviewed = await prisma.review.count({
+      where: { userId },
+    });
+
+    const achievements = [
+      {
+        id: 'cord-competent',
+        title: 'Cord Competent',
+        description: 'Get 70%+ nodes to ≥70% strength',
+        icon: '🧠',
+        current: cordCompetent,
+        target: Math.ceil(totalNodes * 0.7),
+        percentage: totalNodes > 0 ? Math.round((cordCompetent / (totalNodes * 0.7)) * 100) : 0,
+      },
+      {
+        id: 'brain-stem-boss',
+        title: 'Brain Stem Boss',
+        description: 'Get 50%+ nodes to ≥85% strength',
+        icon: '💪',
+        current: brainStemBoss,
+        target: Math.ceil(totalNodes * 0.5),
+        percentage: totalNodes > 0 ? Math.round((brainStemBoss / (totalNodes * 0.5)) * 100) : 0,
+      },
+      {
+        id: 'hyperreflexic-hero',
+        title: 'Hyperreflexic Hero',
+        description: 'Get 25%+ nodes to ≥95% strength',
+        icon: '💠',
+        current: hyperreflexicHero,
+        target: Math.ceil(totalNodes * 0.25),
+        percentage: totalNodes > 0 ? Math.round((hyperreflexicHero / (totalNodes * 0.25)) * 100) : 0,
+      },
+      {
+        id: 'review-streak',
+        title: 'Review Streak',
+        description: 'Study every day without missing',
+        icon: '🔥',
+        current: streak,
+        target: 30,
+        percentage: Math.min(Math.round((streak / 30) * 100), 100),
+      },
+      {
+        id: 'card-master',
+        title: 'Card Master',
+        description: 'Review cards to build knowledge',
+        icon: '🎓',
+        current: totalReviewed,
+        target: 1000,
+        percentage: Math.min(Math.round((totalReviewed / 1000) * 100), 100),
+      },
+    ];
+
+    res.json({ achievements });
+  } catch (error) {
+    console.error('Get achievements error:', error);
+    res.status(500).json({ error: 'Failed to get achievements' });
+  }
+});
+
+// Get hardest cards for drilling (from specific node)
+router.get('/drill-hardest/:nodeId', async (req: AuthRequest, res) => {
+  try {
+    const { nodeId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    // Verify ownership
+    const node = await prisma.node.findFirst({
+      where: { id: nodeId, userId: req.user!.id },
+    });
+
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // Get all cards from this node
+    const cards = await prisma.card.findMany({
+      where: {
+        nodeId,
+        userId: req.user!.id,
+      },
+      include: {
+        node: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+          },
+        },
+        reviews: {
+          orderBy: { reviewedAt: 'desc' },
+          take: 5,
+          select: {
+            rating: true,
+            reviewedAt: true,
+          },
+        },
+      },
+    });
+
+    // Sort cards by difficulty (hardest first)
+    const sortedCards = cards.sort((a, b) => {
+      // Priority 1: Recent "Again" ratings (rating 0)
+      const aRecentAgain = a.reviews.filter(r => r.rating === 0).length;
+      const bRecentAgain = b.reviews.filter(r => r.rating === 0).length;
+      if (aRecentAgain !== bRecentAgain) return bRecentAgain - aRecentAgain;
+
+      // Priority 2: Lowest stability (FSRS data)
+      const aStability = (a.fsrsData as any)?.stability || 0;
+      const bStability = (b.fsrsData as any)?.stability || 0;
+      if (aStability !== bStability) return aStability - bStability;
+
+      // Priority 3: Most lapses
+      const aLapses = (a.fsrsData as any)?.lapses || 0;
+      const bLapses = (b.fsrsData as any)?.lapses || 0;
+      return bLapses - aLapses;
+    });
+
+    // Take top N hardest cards
+    const hardestCards = sortedCards.slice(0, limit).map(card => ({
+      id: card.id,
+      nodeId: card.nodeId,
+      nodeName: card.node.name,
+      nodeStrength: card.node.nodeStrength,
+      front: card.front,
+      back: card.back,
+      hint: card.hint,
+      cardType: card.cardType,
+      fsrsData: card.fsrsData,
+    }));
+
+    res.json({
+      cards: hardestCards,
+      count: hardestCards.length,
+      nodeName: node.name,
+    });
+  } catch (error) {
+    console.error('Get drill hardest error:', error);
+    res.status(500).json({ error: 'Failed to get hardest cards' });
+  }
+});
+
 // Get node progress over time
 router.get('/progress/:nodeId', async (req: AuthRequest, res) => {
   try {

@@ -182,4 +182,72 @@ router.get('/:id/strength', async (req: AuthRequest, res) => {
   }
 });
 
+// Get node strength history (sparkline data)
+router.get('/:id/strength-history', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const days = parseInt(req.query.days as string) || 7;
+
+    // Verify ownership
+    const node = await prisma.node.findFirst({
+      where: { id, userId: req.user!.id },
+    });
+
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // Get all reviews for cards in this node over the past N days
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const reviews = await prisma.review.findMany({
+      where: {
+        card: { nodeId: id },
+        userId: req.user!.id,
+        reviewedAt: { gte: startDate },
+      },
+      orderBy: { reviewedAt: 'asc' },
+      select: {
+        grade: true,
+        reviewedAt: true,
+      },
+    });
+
+    // Group reviews by day and calculate average strength
+    const dayMap = new Map<string, { grades: number[]; date: Date }>();
+
+    reviews.forEach((review) => {
+      const dateKey = review.reviewedAt.toISOString().split('T')[0];
+      if (!dayMap.has(dateKey)) {
+        dayMap.set(dateKey, { grades: [], date: review.reviewedAt });
+      }
+      dayMap.get(dateKey)!.grades.push(review.grade);
+    });
+
+    // Calculate strength for each day
+    const history = Array.from(dayMap.entries()).map(([dateKey, data]) => {
+      const avgGrade = data.grades.reduce((sum, g) => sum + g, 0) / data.grades.length;
+      const strength = Math.round(avgGrade * 100);
+      return {
+        date: dateKey,
+        strength,
+      };
+    });
+
+    // If no reviews, return current strength for today
+    if (history.length === 0) {
+      history.push({
+        date: new Date().toISOString().split('T')[0],
+        strength: node.nodeStrength,
+      });
+    }
+
+    res.json({ history, currentStrength: node.nodeStrength });
+  } catch (error) {
+    console.error('Get strength history error:', error);
+    res.status(500).json({ error: 'Failed to get strength history' });
+  }
+});
+
 export default router;

@@ -9,10 +9,53 @@ interface Props {
 
 export default function FlashCard({ card, onReview }: Props) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [feedback, setFeedback] = useState<{ message: string; color: string } | null>(null);
+
+  const getMicroFeedback = (rating: number, nodeStrength: number) => {
+    const messages = {
+      0: { // Again
+        weak: ["That node is crying for help 😢", "Ouch, that hurts the myelin 💔", "Time for more reps on this one 🔄"],
+        strong: ["Even experts need refreshers 🤔", "Slippery one, huh? 🧊", "No worries, we all have off days 📉"]
+      },
+      1: { // Hard
+        weak: ["Struggling but fighting 💪", "Progress, slowly but surely 🐌", "Getting warmer... 🌡️"],
+        strong: ["Keeping you honest 🎯", "A little rusty there 🔧", "Close call 😅"]
+      },
+      2: { // Good
+        weak: ["Now we're talking! 🎉", "That's the spirit! 💫", "Synapses are firing! ⚡"],
+        strong: ["Smooth operator 😎", "Classic execution 👌", "Right on track 🛤️"]
+      },
+      3: { // Easy
+        weak: ["Professor-level flex! 💪", "Showing off now? 🌟", "Crushing it! 🔥"],
+        strong: ["Hyperreflexic professor mode! 💠", "Absolute mastery 👑", "Textbook perfect! 📚"]
+      }
+    };
+
+    const category = nodeStrength < 60 ? 'weak' : 'strong';
+    const options = messages[rating as keyof typeof messages][category as keyof typeof messages[0]];
+    const message = options[Math.floor(Math.random() * options.length)];
+
+    const colors = {
+      0: 'from-red-600 to-red-700',
+      1: 'from-orange-500 to-orange-600',
+      2: 'from-green-600 to-green-700',
+      3: 'from-blue-600 to-blue-700',
+    };
+
+    return { message, color: colors[rating as keyof typeof colors] };
+  };
 
   const handleReview = (rating: number) => {
-    onReview(rating);
-    setIsFlipped(false); // Reset for next card
+    // Show micro-feedback
+    const feedbackData = getMicroFeedback(rating, card.nodeStrength);
+    setFeedback(feedbackData);
+
+    // Hide feedback after 2.5 seconds
+    setTimeout(() => {
+      setFeedback(null);
+      onReview(rating);
+      setIsFlipped(false); // Reset for next card
+    }, 2500);
   };
 
   return (
@@ -79,8 +122,21 @@ export default function FlashCard({ card, onReview }: Props) {
         </div>
       </div>
 
+      {/* Micro-feedback overlay */}
+      {feedback && (
+        <div className="mt-6 animate-scale-in">
+          <div className={`bg-gradient-to-r ${feedback.color} text-white
+                          rounded-2xl shadow-2xl p-6 text-center
+                          transform transition-all duration-300`}>
+            <p className="text-xl md:text-2xl font-bold">
+              {feedback.message}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Answer buttons */}
-      {isFlipped && (
+      {isFlipped && !feedback && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-8 animate-slide-in">
           <button
             onClick={(e) => { e.stopPropagation(); handleReview(0); }}

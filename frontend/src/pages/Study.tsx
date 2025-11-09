@@ -3,15 +3,19 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { study, cards as cardsApi } from '../services/api';
 import { DueCard } from '../types';
 import FlashCard from '../components/FlashCard';
+import { useToast } from '../components/ToastContainer';
 
 export default function Study() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const mode = searchParams.get('mode'); // 'disasters' for weak nodes mode
+  const mode = searchParams.get('mode'); // 'disasters' for weak nodes mode, 'drill' for hardest cards
+  const nodeId = searchParams.get('nodeId'); // For drill mode
+  const { addToast } = useToast();
   const [session, setSession] = useState<DueCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(false);
+  const [sessionTitle, setSessionTitle] = useState('Study Session');
   const [sessionStats, setSessionStats] = useState({
     total: 0,
     reviewed: 0,
@@ -31,9 +35,15 @@ export default function Study() {
       if (mode === 'disasters') {
         // Load weak nodes session
         res = await study.getWeakNodesSession(50, 60);
+        setSessionTitle('DISASTER MODE: Weak Nodes Only');
+      } else if (mode === 'drill' && nodeId) {
+        // Load drill hardest cards
+        res = await study.getDrillHardest(nodeId, 20);
+        setSessionTitle(`Disaster Drill: ${res.data.nodeName}`);
       } else {
         // Load normal session
         res = await study.getSession(80);
+        setSessionTitle('Study Session');
       }
       setSession(res.data.cards);
       setSessionStats((prev) => ({ ...prev, total: res.data.count }));
@@ -53,7 +63,16 @@ export default function Study() {
     const card = session[currentIndex];
 
     try {
-      await cardsApi.review(card.id, rating);
+      const res = await cardsApi.review(card.id, rating);
+
+      // Check for strength band drop (Lesion Alert)
+      if (res.data.strengthDropped) {
+        addToast({
+          message: `⚠️ Lesion Alert: ${res.data.nodeName} dropped from ${res.data.oldBand} → ${res.data.newBand}`,
+          type: 'warning',
+          duration: 5000,
+        });
+      }
 
       // Update stats
       setSessionStats((prev) => ({
@@ -113,7 +132,7 @@ export default function Study() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       {/* Header */}
       <header className={`shadow-xl ${
-        mode === 'disasters'
+        mode === 'disasters' || mode === 'drill'
           ? 'bg-gradient-to-r from-red-600 to-pink-600'
           : 'bg-gradient-to-r from-blue-600 to-purple-600'
       }`}>
@@ -131,9 +150,9 @@ export default function Study() {
               <span>←</span> Quit
             </button>
             <div className="text-center flex-1">
-              {mode === 'disasters' && (
+              {(mode === 'disasters' || mode === 'drill') && (
                 <div className="text-sm font-bold text-white/90 mb-2 animate-pulse">
-                  🚨 DISASTER MODE: Weak Nodes Only
+                  🚨 {sessionTitle}
                 </div>
               )}
               <div className="text-2xl md:text-3xl font-black text-white mb-1">
@@ -150,7 +169,7 @@ export default function Study() {
           <div className="mt-6 h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur">
             <div
               className={`h-full ${
-                mode === 'disasters'
+                mode === 'disasters' || mode === 'drill'
                   ? 'bg-gradient-to-r from-yellow-400 to-green-400'
                   : 'bg-gradient-to-r from-green-400 to-blue-400'
               } transition-all duration-500 shadow-lg`}

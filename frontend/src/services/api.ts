@@ -71,6 +71,12 @@ export const nodes = {
   delete: (id: string) => api.delete(`/nodes/${id}`),
 
   getStrength: (id: string) => api.get<{ strength: number }>(`/nodes/${id}/strength`),
+
+  getStrengthHistory: (id: string, days?: number) =>
+    api.get<{ history: Array<{ date: string; strength: number }>; currentStrength: number }>(
+      `/nodes/${id}/strength-history`,
+      { params: { days } }
+    ),
 };
 
 // Facts API
@@ -156,6 +162,14 @@ export const study = {
   checkBadges: () => api.post('/study/check-badges'),
 
   getBadges: () => api.get('/study/badges'),
+
+  getAchievements: () => api.get<{ achievements: any[] }>('/study/achievements'),
+
+  getDrillHardest: (nodeId: string, limit?: number) =>
+    api.get<{ cards: any[]; count: number; nodeName: string }>(
+      `/study/drill-hardest/${nodeId}`,
+      { params: { limit } }
+    ),
 };
 
 // Images API

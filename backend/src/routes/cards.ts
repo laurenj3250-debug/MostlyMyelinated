@@ -145,17 +145,39 @@ router.post('/:id/review', async (req: AuthRequest, res) => {
       });
     }
 
-    // Get card
+    // Get card with node info
     const card = await prisma.card.findFirst({
       where: {
         id,
         userId: req.user!.id,
+      },
+      include: {
+        node: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+          },
+        },
       },
     });
 
     if (!card) {
       return res.status(404).json({ error: 'Card not found' });
     }
+
+    // Store old node strength and band
+    const oldStrength = card.node.nodeStrength;
+    const getStrengthBand = (strength: number): string => {
+      if (strength < 20) return 'Brain-dead';
+      if (strength < 40) return 'LMN tetraplegic';
+      if (strength < 60) return 'Non-ambulatory ataxic';
+      if (strength < 75) return 'Ambulatory ataxic';
+      if (strength < 85) return 'Mild paresis';
+      if (strength < 95) return 'BAR, subtle deficits';
+      return 'Hyperreflexic professor';
+    };
+    const oldBand = getStrengthBand(oldStrength);
 
     // Process FSRS scheduling
     const { updatedFSRSData } = processReview(card.fsrsData as any, rating);
@@ -181,10 +203,12 @@ router.post('/:id/review', async (req: AuthRequest, res) => {
       },
     });
 
-    // Update node strength asynchronously (don't wait for it)
-    updateNodeStrength(card.nodeId).catch((err) =>
-      console.error('Failed to update node strength:', err)
-    );
+    // Update node strength and check for band drops
+    const newStrength = await updateNodeStrength(card.nodeId);
+    const newBand = getStrengthBand(newStrength);
+
+    // Detect if strength dropped to a lower band
+    const strengthDropped = oldStrength > newStrength && oldBand !== newBand;
 
     res.json({
       review,
@@ -193,6 +217,10 @@ router.post('/:id/review', async (req: AuthRequest, res) => {
         ...card,
         fsrsData: updatedFSRSData,
       },
+      strengthDropped,
+      oldBand,
+      newBand,
+      nodeName: card.node.name,
     });
   } catch (error) {
     console.error('Review card error:', error);

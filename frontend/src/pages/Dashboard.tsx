@@ -7,6 +7,8 @@ import NeuroLabel from '../components/NeuroLabel';
 import RoastMessage from '../components/RoastMessage';
 import SkillTree from '../components/SkillTree';
 import BadgeDisplay from '../components/BadgeDisplay';
+import AchievementBars from '../components/AchievementBars';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -86,9 +88,9 @@ export default function Dashboard() {
   const weakestNodes = [...nodeList].sort((a, b) => a.nodeStrength - b.nodeStrength).slice(0, 3);
 
   return (
-    <div className="min-h-screen page-enter">
+    <div className="min-h-screen page-enter dark:bg-gradient-to-br dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-300">
       {/* Header with gradient */}
-      <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 shadow-xl">
+      <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 shadow-xl dark:from-blue-800 dark:via-blue-900 dark:to-purple-900">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
@@ -100,6 +102,7 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="flex gap-3">
+              <ThemeToggle />
               <button
                 onClick={() => navigate('/import')}
                 className="btn bg-purple-600 text-white hover:bg-purple-700 shadow-lg hover:shadow-xl
@@ -165,6 +168,11 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Achievement Progress */}
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <AchievementBars />
+      </div>
 
       {/* Stats Cards */}
       {stats && (

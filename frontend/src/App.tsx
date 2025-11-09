@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard';
 import NodeDetail from './pages/NodeDetail';
 import Study from './pages/Study';
 import TextbookImporter from './pages/TextbookImporter';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { ToastProvider } from './components/ToastContainer';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -12,43 +14,47 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/nodes/:id"
-          element={
-            <PrivateRoute>
-              <NodeDetail />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/study"
-          element={
-            <PrivateRoute>
-              <Study />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/import"
-          element={
-            <PrivateRoute>
-              <TextbookImporter />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <ToastProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/nodes/:id"
+              element={
+                <PrivateRoute>
+                  <NodeDetail />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/study"
+              element={
+                <PrivateRoute>
+                  <Study />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/import"
+              element={
+                <PrivateRoute>
+                  <TextbookImporter />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

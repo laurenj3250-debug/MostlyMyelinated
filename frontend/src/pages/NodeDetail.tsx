@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { nodes, facts as factsApi, images as imagesApi } from '../services/api';
 import { Node, Fact } from '../types';
 import StrengthBadge from '../components/StrengthBadge';
+import Sparkline from '../components/Sparkline';
 import QuickAddBar from '../components/QuickAddBar';
 import AITextExtractor from '../components/AITextExtractor';
 import CardPreviewModal from '../components/CardPreviewModal';
 import ImageUploader from '../components/ImageUploader';
+import { TrendingUp } from 'lucide-react';
 
 export default function NodeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +22,7 @@ export default function NodeDetail() {
   const [previewFactStatement, setPreviewFactStatement] = useState<string>('');
   const [nodeImages, setNodeImages] = useState<any[]>([]);
   const [showImages, setShowImages] = useState(false);
+  const [sparklineData, setSparklineData] = useState<Array<{ date: string; strength: number }>>([]);
 
   useEffect(() => {
     if (id) loadNode();
@@ -27,13 +30,15 @@ export default function NodeDetail() {
 
   const loadNode = async () => {
     try {
-      const [nodeRes, imagesRes] = await Promise.all([
+      const [nodeRes, imagesRes, historyRes] = await Promise.all([
         nodes.get(id!),
         imagesApi.getNodeImages(id!),
+        nodes.getStrengthHistory(id!, 7),
       ]);
       setNode(nodeRes.data as any);
       setNodeFacts((nodeRes.data as any).facts || []);
       setNodeImages(imagesRes.data as any);
+      setSparklineData(historyRes.data.history);
     } catch (error) {
       console.error('Failed to load node:', error);
       alert('Failed to load node');
@@ -194,7 +199,7 @@ export default function NodeDetail() {
                 <p className="text-gray-600 mt-2">{node.summary}</p>
               )}
             </div>
-            <div>
+            <div className="flex flex-col items-end gap-3">
               {node.strengthLabel && (
                 <StrengthBadge
                   strength={node.strengthLabel.strength}
@@ -202,6 +207,13 @@ export default function NodeDetail() {
                   emoji={node.strengthLabel.emoji}
                   size="lg"
                 />
+              )}
+              {sparklineData.length > 0 && (
+                <div className="flex items-center gap-2 bg-white/80 px-3 py-2 rounded-lg">
+                  <TrendingUp className="w-4 h-4 text-gray-500" />
+                  <span className="text-xs text-gray-600 font-medium">7-day trend:</span>
+                  <Sparkline data={sparklineData} width={100} height={30} />
+                </div>
               )}
             </div>
           </div>
@@ -233,6 +245,25 @@ export default function NodeDetail() {
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <QuickAddBar onAdd={handleAddFact} isLoading={addingFact} />
       </div>
+
+      {/* Drill Hardest Cards Button */}
+      {(node as any)._count && (node as any)._count.cards > 0 && (
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <button
+            onClick={() => navigate(`/study?mode=drill&nodeId=${id}`)}
+            className="w-full md:w-auto btn bg-gradient-to-r from-red-600 to-pink-600 text-white
+                      font-bold py-4 px-8 rounded-xl shadow-xl
+                      hover:from-red-700 hover:to-pink-700
+                      transform hover:scale-105 active:scale-95
+                      transition-all duration-200
+                      flex items-center justify-center gap-2"
+          >
+            <span className="text-2xl">🔥</span>
+            <span className="text-lg">Drill Hardest Cards</span>
+            <span className="text-sm opacity-90">(up to 20 cards)</span>
+          </button>
+        </div>
+      )}
 
       {/* AI Text Extractor */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
