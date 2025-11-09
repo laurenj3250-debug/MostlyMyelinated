@@ -79,6 +79,16 @@ export interface Review {
   reviewedAt: string;
 }
 
+export interface ReviewResponse {
+  review: Review;
+  nextDue: string;
+  updatedCard: Card;
+  strengthDropped?: boolean;
+  nodeName?: string;
+  oldBand?: string;
+  newBand?: string;
+}
+
 // Study session types
 export interface DueCard {
   id: string;

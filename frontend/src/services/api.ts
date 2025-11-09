@@ -7,6 +7,7 @@ import type {
   Card,
   StudySession,
   StudyStats,
+  ReviewResponse,
 } from '../types';
 
 // Use relative path in production (same domain), localhost in dev
@@ -136,7 +137,7 @@ export const cards = {
   delete: (id: string) => api.delete(`/cards/${id}`),
 
   review: (id: string, rating: number) =>
-    api.post<{ review: any; nextDue: string; updatedCard: Card }>(
+    api.post<ReviewResponse>(
       `/cards/${id}/review`,
       { rating }
     ),
