@@ -1,4 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
+// @ts-ignore - pdf-parse v1.1.1 doesn't have TypeScript definitions
+import pdf from 'pdf-parse';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -561,8 +563,6 @@ Return ONLY valid JSON in this format:
  * Extract text from PDF buffer using pdf-parse
  */
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // @ts-ignore - pdf-parse doesn't have proper types
-  const pdfParse = (await import('pdf-parse')).default;
-  const data = await pdfParse(buffer);
+  const data = await pdf(buffer);
   return data.text;
 }
