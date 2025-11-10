@@ -5,6 +5,7 @@ import NodeDetail from './pages/NodeDetail';
 import NodeNew from './pages/NodeNew';
 import Study from './pages/Study';
 import TextbookImporter from './pages/TextbookImporter';
+import QuickNotes from './pages/QuickNotes';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './components/ToastContainer';
 
@@ -57,6 +58,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <TextbookImporter />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/quick-notes"
+              element={
+                <PrivateRoute>
+                  <QuickNotes />
                 </PrivateRoute>
               }
             />

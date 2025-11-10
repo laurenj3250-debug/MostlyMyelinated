@@ -173,6 +173,12 @@ export const nodes = {
 
 // Facts API
 export const facts = {
+  parse: (data: {
+    notes: string[];
+    topic?: string;
+    imageUrls?: string[];
+  }) => api.post<{ parsed: any[]; count: number }>('/facts/parse', data),
+
   create: (data: {
     nodeId: string;
     statement: string;

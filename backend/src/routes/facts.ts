@@ -4,12 +4,135 @@ import { authenticateToken } from '../middleware/auth';
 import { AuthRequest } from '../types';
 import { generateCards, extractKeyTerms } from '../services/cardGenerator';
 import { createInitialFSRSData } from '../services/fsrsScheduler';
+import { parseFacts, findRelevantNodes } from '../services/parseFactsAgent';
+import { generateEmbedding } from '../services/embeddingService';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // All routes require authentication
 router.use(authenticateToken);
+
+// Parse messy notes into facts and card variants (NEW ARCHITECTURE)
+router.post('/parse', async (req: AuthRequest, res) => {
+  try {
+    const { notes, topic, imageUrls } = req.body;
+
+    if (!notes || !Array.isArray(notes) || notes.length === 0) {
+      return res.status(400).json({
+        error: 'notes array is required and must not be empty',
+      });
+    }
+
+    // Limit to 20 notes per request
+    if (notes.length > 20) {
+      return res.status(400).json({
+        error: 'Maximum 20 notes per request',
+      });
+    }
+
+    const userId = req.user!.id;
+
+    // Get all user's nodes with embeddings for context
+    // Note: This will fail until embeddings are added to nodes
+    // For now, we'll work with empty nodes array or fetch without embeddings
+    const userNodes = await prisma.node.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        name: true,
+        summary: true,
+        // embedding: true, // TODO: Add when embeddings column exists
+      },
+    });
+
+    // For each note, find relevant nodes
+    // TODO: Implement proper vector similarity search when pgvector is set up
+    // For now, pass all nodes as context
+    const contextNodes = userNodes.map(node => ({
+      id: node.id,
+      name: node.name,
+      summary: node.summary || undefined,
+      embedding: [], // TODO: Replace with actual embeddings
+    }));
+
+    // Parse the facts using AI
+    const parsedFacts = await parseFacts(notes, contextNodes, topic);
+
+    // Create facts and card variants in database
+    const results = await Promise.all(
+      parsedFacts.map(async (parsed) => {
+        // Generate embedding for the cleaned fact
+        let embedding;
+        try {
+          // TODO: Store embedding when pgvector is set up
+          embedding = await generateEmbedding(parsed.cleaned);
+        } catch (embErr) {
+          console.warn('Failed to generate embedding:', embErr);
+          embedding = null;
+        }
+
+        // Determine node assignment
+        let assignedNodeId = null;
+        const topMatch = parsed.nodeMatches[0];
+        if (topMatch && topMatch.confidence > 0.85) {
+          assignedNodeId = topMatch.id;
+        }
+
+        // Create the fact
+        const fact = await prisma.fact.create({
+          data: {
+            userId,
+            nodeId: assignedNodeId, // null = Unsorted
+            originalText: parsed.original,
+            cleanedText: parsed.cleaned,
+            factType: parsed.factType,
+            confidence: parsed.confidence,
+          },
+        });
+
+        // Create card variants
+        const cardVariants = await Promise.all(
+          parsed.variants.map(variant =>
+            prisma.cardVariant.create({
+              data: {
+                factId: fact.id,
+                kind: variant.kind,
+                front: variant.front,
+                back: variant.back,
+                confidence: variant.confidence,
+                // FSRS defaults are set in schema
+              },
+            })
+          )
+        );
+
+        return {
+          original: parsed.original,
+          cleaned: parsed.cleaned,
+          factType: parsed.factType,
+          confidence: parsed.confidence,
+          nodeMatches: parsed.nodeMatches,
+          newNodeProposal: parsed.newNodeProposal,
+          variants: parsed.variants,
+          factId: fact.id,
+          variantIds: cardVariants.map(cv => cv.id),
+        };
+      })
+    );
+
+    res.json({
+      parsed: results,
+      count: results.length,
+    });
+  } catch (error: any) {
+    console.error('Parse facts error:', error);
+    res.status(500).json({
+      error: 'Failed to parse facts',
+      details: error.message,
+    });
+  }
+});
 
 // Create fact for a node
 router.post('/', async (req: AuthRequest, res) => {
