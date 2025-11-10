@@ -8,6 +8,7 @@ import NodeSheet from '../components/NodeSheet';
 import StreakFlame from '../components/StreakFlame';
 import XPBar from '../components/XPBar';
 import SkillTree from '../components/SkillTree';
+import GraphView from '../components/GraphView';
 import { nodes as nodesApi, study as studyApi } from '../services/api';
 import type { Node } from '../types';
 
@@ -20,10 +21,11 @@ export default function Dashboard() {
   const [studyStats, setStudyStats] = useState<any>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [userLevel, setUserLevel] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'tree' | 'graph'>('list');
   const [moduleFilter, setModuleFilter] = useState<string>('All');
   const [nodeSheetOpen, setNodeSheetOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [allRelationships, setAllRelationships] = useState<any[]>([]);
 
   const openNodeSheet = (nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -80,6 +82,19 @@ export default function Dashboard() {
       });
       setCriticalNodes(criticalNodesRes?.data?.nodes || []);
       setAllNodes(allNodesRes?.data || []);
+
+      // Fetch relationships for all nodes
+      if (allNodesRes?.data && allNodesRes.data.length > 0) {
+        const relationshipsPromises = allNodesRes.data.map((node: Node) =>
+          nodesApi.getRelationships(node.id).catch(() => ({ data: { outgoing: [], incoming: [] } }))
+        );
+        const relationshipsResults = await Promise.all(relationshipsPromises);
+
+        // Flatten all relationships (only outgoing to avoid duplicates)
+        const flatRelationships = relationshipsResults.flatMap(res => res.data.outgoing || []);
+        setAllRelationships(flatRelationships);
+      }
+
       setStudyStats(statsRes?.data || {
         reviewsToday: 0,
         newCardsToday: 0,
@@ -230,6 +245,17 @@ export default function Dashboard() {
                 TREE
               </button>
               <button
+                onClick={() => setViewMode('graph')}
+                className={`px-3 py-1 font-mono text-sm ${
+                  viewMode === 'graph'
+                    ? 'bg-lab-cyan text-black'
+                    : 'bg-lab-card text-lab-text-tertiary border border-lab-border'
+                }`}
+                style={{ borderRadius: '2px' }}
+              >
+                GRAPH
+              </button>
+              <button
                 onClick={() => navigate('/nodes/new')}
                 className="px-4 py-2 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all ml-2"
                 style={{ borderRadius: '2px' }}
@@ -261,6 +287,14 @@ export default function Dashboard() {
             </div>
           ) : viewMode === 'tree' ? (
             <SkillTree nodes={allNodes} onNodeClick={openNodeSheet} />
+          ) : viewMode === 'graph' ? (
+            <div className="h-[800px]">
+              <GraphView
+                nodes={allNodes}
+                relationships={allRelationships}
+                onNodeClick={openNodeSheet}
+              />
+            </div>
           ) : (
             <>
               {/* Module filter */}
