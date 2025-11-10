@@ -148,28 +148,29 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-lab-background p-6 flex items-center justify-center">
-        <div className="text-lab-cyan font-mono text-lg">LOADING NEUROLOGICAL ASSESSMENT...</div>
+      <div className="min-h-screen bg-lab-bg-primary p-6 flex items-center justify-center">
+        <div className="text-holographic font-display text-2xl font-extrabold uppercase tracking-wider animate-pulse-glow-neon">
+          INITIALIZING NEURAL SCAN...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-diagnostic-grid">
+    <div className="min-h-screen bg-lab-bg-primary">
       {/* HUD Bar */}
       <header
-        className="sticky top-0 z-50 flex items-center justify-between px-6 bg-lab-card/80 backdrop-blur-xl border-b border-lab-border/50"
+        className="sticky top-0 z-50 flex items-center justify-between px-8 backdrop-blur-xl border-b-2"
         style={{
-          height: '72px',
-          boxShadow: 'inset 0 1px 0 rgba(0, 217, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2)'
+          height: '80px',
+          background: 'linear-gradient(135deg, rgba(255, 94, 205, 0.08) 0%, rgba(163, 75, 255, 0.08) 50%, rgba(0, 234, 255, 0.08) 100%)',
+          borderColor: 'rgba(255, 156, 255, 0.3)',
+          boxShadow: '0 0 20px rgba(255, 90, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
         }}
       >
         {/* App Title */}
         <div>
-          <h1
-            className="font-display text-xl font-extrabold tracking-[0.15em] text-lab-cyan uppercase"
-            style={{ textShadow: '0 0 12px rgba(0, 217, 255, 0.5)' }}
-          >
+          <h1 className="text-holographic font-display text-2xl font-extrabold tracking-[0.2em] uppercase">
             MOSTLYMYELINATED
           </h1>
         </div>
@@ -179,17 +180,41 @@ export default function Dashboard() {
           {/* Overall Status Chip */}
           {neuroStatus && (
             <div
-              className="flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold font-mono uppercase tracking-wide"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-pill border-medium text-sm font-bold font-display uppercase tracking-wider"
               style={{
-                background: `rgba(${neuroStatus.overallScore < 40 ? '59, 130, 246' : neuroStatus.overallScore < 60 ? '20, 184, 166' : neuroStatus.overallScore < 75 ? '249, 115, 22' : '0, 217, 255'}, 0.12)`,
-                borderColor: `rgba(${neuroStatus.overallScore < 40 ? '59, 130, 246' : neuroStatus.overallScore < 60 ? '20, 184, 166' : neuroStatus.overallScore < 75 ? '249, 115, 22' : '0, 217, 255'}, 0.3)`,
-                color: neuroStatus.overallScore < 40 ? '#3b82f6' : neuroStatus.overallScore < 60 ? '#14b8a6' : neuroStatus.overallScore < 75 ? '#f97316' : '#00d9ff',
-                boxShadow: `0 0 8px rgba(${neuroStatus.overallScore < 40 ? '59, 130, 246' : neuroStatus.overallScore < 60 ? '20, 184, 166' : neuroStatus.overallScore < 75 ? '249, 115, 22' : '0, 217, 255'}, 0.15)`,
+                background: neuroStatus.overallScore < 40
+                  ? 'linear-gradient(135deg, rgba(139, 75, 255, 0.15), rgba(139, 75, 255, 0.08))'
+                  : neuroStatus.overallScore < 60
+                  ? 'linear-gradient(135deg, rgba(0, 168, 255, 0.15), rgba(0, 168, 255, 0.08))'
+                  : neuroStatus.overallScore < 75
+                  ? 'linear-gradient(135deg, rgba(255, 170, 0, 0.15), rgba(255, 170, 0, 0.08))'
+                  : 'linear-gradient(135deg, rgba(0, 234, 255, 0.15), rgba(0, 234, 255, 0.08))',
+                borderColor: neuroStatus.overallScore < 40
+                  ? '#8b4bff'
+                  : neuroStatus.overallScore < 60
+                  ? '#00a8ff'
+                  : neuroStatus.overallScore < 75
+                  ? '#ffaa00'
+                  : '#00eaff',
+                color: neuroStatus.overallScore < 40
+                  ? '#a34bff'
+                  : neuroStatus.overallScore < 60
+                  ? '#00d9ff'
+                  : neuroStatus.overallScore < 75
+                  ? '#ffd700'
+                  : '#00eaff',
+                boxShadow: neuroStatus.overallScore < 40
+                  ? '0 0 12px rgba(139, 75, 255, 0.4), 0 0 24px rgba(139, 75, 255, 0.2)'
+                  : neuroStatus.overallScore < 60
+                  ? '0 0 12px rgba(0, 168, 255, 0.4), 0 0 24px rgba(0, 168, 255, 0.2)'
+                  : neuroStatus.overallScore < 75
+                  ? '0 0 12px rgba(255, 170, 0, 0.4), 0 0 24px rgba(255, 170, 0, 0.2)'
+                  : '0 0 12px rgba(0, 234, 255, 0.4), 0 0 24px rgba(0, 234, 255, 0.2)',
                 fontSize: '13px'
               }}
             >
               <span>{neuroStatus.statusLabel}</span>
-              <span>•</span>
+              <span className="opacity-50">●</span>
               <span>{Math.round(neuroStatus.overallScore)}%</span>
             </div>
           )}
@@ -197,41 +222,45 @@ export default function Dashboard() {
           {/* Streak Indicator */}
           {userLevel && userLevel.streak > 0 && (
             <div
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-lab-mint/20 text-sm font-semibold font-mono"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-pill border-medium text-sm font-bold font-display uppercase tracking-wider"
               style={{
-                background: 'rgba(0, 255, 136, 0.08)',
-                color: '#00ff88'
+                background: 'linear-gradient(135deg, rgba(255, 94, 205, 0.15), rgba(255, 94, 205, 0.08))',
+                borderColor: '#ff5ecd',
+                color: '#ff9cff',
+                boxShadow: '0 0 12px rgba(255, 94, 205, 0.4), 0 0 24px rgba(255, 94, 205, 0.2)'
               }}
             >
-              <span
-                className="text-base"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(0, 255, 136, 0.6))' }}
-              >
-                🔥
-              </span>
-              <span>{userLevel.streak}</span>
+              <span style={{ fontSize: '16px', lineHeight: '1' }}>▲</span>
+              <span>{userLevel.streak} DAY STREAK</span>
             </div>
           )}
 
           {/* Start Session Button */}
           <button
             onClick={() => navigate('/study')}
-            className="px-8 py-3 font-extrabold text-sm tracking-[0.12em] uppercase rounded-full border-none cursor-pointer transition-all duration-250"
+            className="relative overflow-hidden px-10 py-3.5 font-extrabold text-base tracking-[0.15em] uppercase rounded-pill border-none cursor-pointer transition-all duration-200"
             style={{
-              background: 'linear-gradient(135deg, #00d9ff 0%, #00ff88 100%)',
-              color: '#0a0e1a',
-              boxShadow: '0 0 16px rgba(0, 217, 255, 0.4), 0 0 32px rgba(0, 255, 136, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+              background: 'linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%)',
+              color: '#ffffff',
+              boxShadow: '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.3)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 217, 255, 0.6), 0 0 40px rgba(0, 255, 136, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)';
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 0 30px rgba(255, 90, 255, 0.7), 0 0 60px rgba(255, 90, 255, 0.4), 0 8px 20px rgba(0, 0, 0, 0.4)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 217, 255, 0.4), 0 0 32px rgba(0, 255, 136, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+              e.currentTarget.style.boxShadow = '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.3)';
             }}
           >
-            START SESSION
+            <span className="relative z-10">START SESSION</span>
+            <div
+              className="absolute inset-0 w-1/2 h-full animate-light-sweep"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+                pointerEvents: 'none'
+              }}
+            />
           </button>
         </div>
       </header>
@@ -275,49 +304,89 @@ export default function Dashboard() {
         )}
 
         {/* Neural Pathway Status Section */}
-        <div className="bg-black border-2 border-lab-border p-6" style={{ borderRadius: '2px' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-mono uppercase text-lab-cyan">
+        <div
+          className="p-8 rounded-xl backdrop-blur-md border-medium"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 94, 205, 0.05) 0%, rgba(163, 75, 255, 0.05) 50%, rgba(0, 234, 255, 0.05) 100%)',
+            borderColor: 'rgba(255, 156, 255, 0.2)',
+            boxShadow: '0 0 30px rgba(255, 90, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+          }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-display font-extrabold uppercase tracking-wider text-holographic">
               NEURAL PATHWAY STATUS ({allNodes.length})
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1 font-mono text-sm ${
+                className={`px-5 py-2.5 font-display font-bold text-sm uppercase tracking-wider rounded-pill border-thin transition-all ${
                   viewMode === 'list'
-                    ? 'bg-lab-cyan text-black'
-                    : 'bg-lab-card text-lab-text-tertiary border border-lab-border'
+                    ? 'border-neon-cyan text-neon-cyan'
+                    : 'border-lab-border text-lab-text-muted hover:border-neon-cyan/50'
                 }`}
-                style={{ borderRadius: '2px' }}
+                style={
+                  viewMode === 'list'
+                    ? {
+                        background: 'rgba(0, 234, 255, 0.15)',
+                        boxShadow: '0 0 16px rgba(0, 234, 255, 0.4)'
+                      }
+                    : {}
+                }
               >
                 STATUS
               </button>
               <button
                 onClick={() => setViewMode('tree')}
-                className={`px-3 py-1 font-mono text-sm ${
+                className={`px-5 py-2.5 font-display font-bold text-sm uppercase tracking-wider rounded-pill border-thin transition-all ${
                   viewMode === 'tree'
-                    ? 'bg-lab-cyan text-black'
-                    : 'bg-lab-card text-lab-text-tertiary border border-lab-border'
+                    ? 'border-neon-cyan text-neon-cyan'
+                    : 'border-lab-border text-lab-text-muted hover:border-neon-cyan/50'
                 }`}
-                style={{ borderRadius: '2px' }}
+                style={
+                  viewMode === 'tree'
+                    ? {
+                        background: 'rgba(0, 234, 255, 0.15)',
+                        boxShadow: '0 0 16px rgba(0, 234, 255, 0.4)'
+                      }
+                    : {}
+                }
               >
                 TREE
               </button>
               <button
                 onClick={() => setViewMode('graph')}
-                className={`px-3 py-1 font-mono text-sm ${
+                className={`px-5 py-2.5 font-display font-bold text-sm uppercase tracking-wider rounded-pill border-thin transition-all ${
                   viewMode === 'graph'
-                    ? 'bg-lab-cyan text-black'
-                    : 'bg-lab-card text-lab-text-tertiary border border-lab-border'
+                    ? 'border-neon-cyan text-neon-cyan'
+                    : 'border-lab-border text-lab-text-muted hover:border-neon-cyan/50'
                 }`}
-                style={{ borderRadius: '2px' }}
+                style={
+                  viewMode === 'graph'
+                    ? {
+                        background: 'rgba(0, 234, 255, 0.15)',
+                        boxShadow: '0 0 16px rgba(0, 234, 255, 0.4)'
+                      }
+                    : {}
+                }
               >
                 GRAPH
               </button>
               <button
                 onClick={() => navigate('/nodes/new')}
-                className="px-4 py-2 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all ml-2"
-                style={{ borderRadius: '2px' }}
+                className="relative overflow-hidden px-6 py-2.5 font-display font-extrabold text-sm uppercase tracking-wider rounded-pill border-none transition-all ml-2"
+                style={{
+                  background: 'linear-gradient(135deg, #ff5ecd 0%, #a34bff 100%)',
+                  color: '#ffffff',
+                  boxShadow: '0 0 20px rgba(255, 94, 205, 0.4), 0 0 40px rgba(255, 94, 205, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 0 24px rgba(255, 94, 205, 0.6), 0 0 48px rgba(255, 94, 205, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 94, 205, 0.4), 0 0 40px rgba(255, 94, 205, 0.2)';
+                }}
               >
                 + CREATE NODE
               </button>
@@ -325,23 +394,35 @@ export default function Dashboard() {
           </div>
 
           {allNodes.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">⚠️</div>
-              <p className="text-lg font-mono text-lab-text-primary mb-2 uppercase">
+            <div className="text-center py-16">
+              <div className="text-6xl mb-6 animate-pulse-glow-neon" style={{ filter: 'drop-shadow(0 0 20px rgba(255, 94, 205, 0.6))' }}>◆</div>
+              <p className="text-2xl font-display font-extrabold text-neon-pink mb-3 uppercase tracking-wider">
                 NEURAL PATHWAYS UNINITIALIZED
               </p>
-              <p className="text-sm font-mono text-lab-text-tertiary mb-6">
+              <p className="text-base font-sans text-lab-text-muted mb-8 max-w-md mx-auto">
                 Create your first node to begin mapping concepts
               </p>
               <button
                 onClick={() => navigate('/nodes/new')}
-                className="px-6 py-3 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all"
-                style={{ borderRadius: '2px' }}
+                className="relative overflow-hidden px-8 py-4 font-display font-extrabold text-base uppercase tracking-wider rounded-pill border-none transition-all"
+                style={{
+                  background: 'linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%)',
+                  color: '#ffffff',
+                  boxShadow: '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 0 30px rgba(255, 90, 255, 0.7), 0 0 60px rgba(255, 90, 255, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3)';
+                }}
               >
                 + CREATE NODE
               </button>
-              <p className="text-xs font-mono text-lab-text-tertiary mt-4">
-                Tip: Start with a concept you're currently studying (e.g., "C6-T2 lesions")
+              <p className="text-sm font-sans text-lab-text-dim mt-6 italic">
+                Tip: Start with a concept you're currently studying
               </p>
             </div>
           ) : viewMode === 'tree' ? (
@@ -357,17 +438,24 @@ export default function Dashboard() {
           ) : (
             <>
               {/* Module filter */}
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-3 mb-6">
                 {['All', 'Spinal', 'Brainstem', 'Cerebrum', 'CSF', 'Clinical', 'Other'].map(module => (
                   <button
                     key={module}
                     onClick={() => setModuleFilter(module)}
-                    className={`px-3 py-1 text-xs font-mono border transition-all ${
+                    className={`px-4 py-2 text-xs font-display font-bold uppercase tracking-wider rounded-pill border-thin transition-all ${
                       moduleFilter === module
-                        ? 'border-lab-cyan text-lab-cyan bg-lab-cyan/10'
-                        : 'border-lab-border text-lab-text-tertiary hover:border-lab-cyan/50'
+                        ? 'border-neon-purple text-neon-fuchsia'
+                        : 'border-lab-border text-lab-text-muted hover:border-neon-purple/50'
                     }`}
-                    style={{ borderRadius: '2px' }}
+                    style={
+                      moduleFilter === module
+                        ? {
+                            background: 'rgba(163, 75, 255, 0.15)',
+                            boxShadow: '0 0 12px rgba(163, 75, 255, 0.3)'
+                          }
+                        : {}
+                    }
                   >
                     {module}
                   </button>
