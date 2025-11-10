@@ -17,17 +17,10 @@
     @apply bg-lab-bg-primary text-lab-text-primary font-sans;
     min-height: 100vh;
     position: relative;
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        rgba(0, 217, 255, 0.01) 0px,
-        transparent 1px,
-        transparent 2px,
-        rgba(0, 217, 255, 0.01) 3px
-      );
+    background: linear-gradient(180deg, #070314 0%, #0d0520 50%, #140928 100%);
   }
 
-  /* Grid overlay */
+  /* Neon wavy grid overlay */
   body::before {
     content: '';
     position: fixed;
@@ -36,29 +29,40 @@
     right: 0;
     bottom: 0;
     background-image:
-      linear-gradient(rgba(0, 217, 255, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 217, 255, 0.02) 1px, transparent 1px);
-    background-size: 50px 50px;
+      /* Diagonal wavy lines */
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 60px,
+        rgba(255, 94, 205, 0.03) 60px,
+        rgba(255, 94, 205, 0.03) 62px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 60px,
+        rgba(0, 234, 255, 0.03) 60px,
+        rgba(0, 234, 255, 0.03) 62px
+      );
     pointer-events: none;
     z-index: 1;
+    animation: grid-pulse 8s ease-in-out infinite;
   }
 
-  /* Scan line effect */
+  /* Floating chrome blob */
   body::after {
     content: '';
     position: fixed;
-    top: -100%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(to bottom,
-      transparent,
-      rgba(0, 217, 255, 0.4),
-      transparent
-    );
-    animation: scan-line 8s linear infinite;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(163, 75, 255, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 1;
+    animation: float-blob 12s ease-in-out infinite;
+    filter: blur(40px);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -67,17 +71,17 @@
   }
 
   h1 {
-    @apply text-3xl md:text-4xl font-mono;
+    @apply text-3xl md:text-4xl font-display;
     line-height: 1.1;
   }
 
   h2 {
-    @apply text-2xl md:text-3xl font-mono;
+    @apply text-2xl md:text-3xl font-display;
     line-height: 1.2;
   }
 
   h3 {
-    @apply text-xl md:text-2xl;
+    @apply text-xl md:text-2xl font-display;
     line-height: 1.3;
   }
 
@@ -105,168 +109,335 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Z-index layering fix for content above background effects */
+  #root > * {
+    position: relative;
+    z-index: 10;
+  }
 }
 
 @layer components {
+  /* === NEON PILL BUTTONS === */
   .btn {
-    @apply px-6 py-3 font-mono font-semibold transition-all duration-200
-           border-2 uppercase tracking-wider text-sm
+    @apply px-6 py-3 font-display font-extrabold transition-all duration-200
+           uppercase tracking-wider text-sm
            disabled:opacity-50 disabled:cursor-not-allowed;
-    border-radius: 2px;
+    border-radius: 48px; /* pill shape */
   }
 
   .btn-primary {
-    @apply bg-lab-cyan/10 text-lab-cyan border-lab-cyan
-           hover:bg-lab-cyan/20 hover:shadow-glow-cyan
-           active:scale-95;
+    background: linear-gradient(135deg, #ff5ecd 0%, #a34bff 60%, #00eaff 100%);
+    color: #ffffff;
+    border: 3px solid transparent;
+    box-shadow: 0 0 24px rgba(255, 90, 255, 0.4), 0 0 48px rgba(255, 90, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: light-sweep 3s ease-in-out infinite;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 0 30px rgba(255, 90, 255, 0.6), 0 0 60px rgba(255, 90, 255, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0) scale(0.98);
   }
 
   .btn-secondary {
-    @apply bg-lab-bg-card text-lab-text-secondary border-lab-border
-           hover:border-lab-cyan hover:text-lab-cyan
-           hover:shadow-glow-sm;
+    @apply bg-lab-bg-card text-lab-text-secondary border-fat border-neon-purple
+           hover:shadow-neon-purple active:scale-95;
+    border-radius: 48px;
   }
 
   .btn-danger {
-    @apply bg-lab-alert/10 text-lab-alert border-lab-alert
-           hover:bg-lab-alert/20 hover:shadow-glow-alert
-           active:scale-95;
+    background: rgba(255, 94, 205, 0.15);
+    color: #ff5ecd;
+    border: 3px solid #ff5ecd;
+    box-shadow: 0 0 20px rgba(255, 94, 205, 0.4), 0 0 40px rgba(255, 94, 205, 0.4);
+    border-radius: 48px;
+  }
+
+  .btn-danger:hover {
+    background: rgba(255, 94, 205, 0.25);
+    box-shadow: 0 0 30px rgba(255, 94, 205, 0.6), 0 0 60px rgba(255, 94, 205, 0.4);
   }
 
   .btn-success {
-    @apply bg-lab-mint/10 text-lab-mint border-lab-mint
-           hover:bg-lab-mint/20 hover:shadow-glow-mint
-           active:scale-95;
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border: 3px solid #00ff88;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4), 0 0 40px rgba(0, 255, 136, 0.4);
+    border-radius: 48px;
   }
 
+  .btn-success:hover {
+    background: rgba(0, 255, 136, 0.25);
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.6), 0 0 60px rgba(0, 255, 136, 0.4);
+  }
+
+  /* === GLASS PANEL CARDS === */
   .card {
-    @apply bg-lab-bg-card border border-lab-cyan/20 p-6
-           transition-all duration-300
-           hover:border-lab-cyan/50 hover:shadow-glow-sm
-           relative overflow-hidden;
-    border-radius: 2px;
+    background: linear-gradient(135deg, rgba(255, 94, 205, 0.08) 0%, rgba(163, 75, 255, 0.08) 50%, rgba(0, 234, 255, 0.08) 100%);
+    backdrop-filter: blur(16px);
+    border: 2px solid;
+    border-image: linear-gradient(135deg, rgba(255, 156, 255, 0.4) 0%, rgba(0, 229, 255, 0.4) 100%) 1;
+    border-radius: 32px;
+    padding: var(--space-6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 100%);
+    pointer-events: none;
+    opacity: 0.3;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%);
+    opacity: 0.6;
+  }
+
+  .card:hover {
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
   }
 
   .card-clinical {
     @apply card;
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 35px,
-        rgba(0, 217, 255, 0.03) 35px,
-        rgba(0, 217, 255, 0.03) 36px
-      );
   }
 
   .card-header {
-    @apply font-mono text-xs uppercase tracking-wider text-lab-cyan mb-4
-           border-b border-lab-cyan/20 pb-2;
+    @apply font-display text-xs uppercase tracking-wider mb-4;
+    background: linear-gradient(90deg, #ff5ecd 0%, #a34bff 25%, #00eaff 50%, #a34bff 75%, #ff5ecd 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: holographic-shimmer 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 90, 255, 0.5));
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid rgba(255, 156, 255, 0.3);
   }
 
+  /* === INPUTS === */
   .input {
-    @apply w-full px-4 py-3 border-2 border-lab-border
-           focus:border-lab-cyan focus:shadow-inner-cyan
+    @apply w-full px-4 py-3 border-medium
+           focus:shadow-neon-cyan
            transition-all duration-200
            bg-lab-bg-primary text-lab-text-primary placeholder-lab-text-tertiary
            font-mono;
-    border-radius: 2px;
+    border-radius: 24px;
+    border: 3px solid rgba(255, 156, 255, 0.3);
+  }
+
+  .input:focus {
+    border-color: #00eaff;
+    outline: none;
   }
 
   .label {
-    @apply block text-xs font-mono font-semibold text-lab-text-secondary mb-2
+    @apply block text-xs font-display font-bold text-lab-text-secondary mb-2
            uppercase tracking-wider;
   }
 
-  /* Clinical data table */
+  /* === NEON PROGRESS BARS === */
+  .progress-neon {
+    height: 32px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 3px solid #00eaff;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 234, 255, 0.4);
+  }
+
+  .progress-neon-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%);
+    border-radius: 48px;
+    box-shadow: 0 0 20px rgba(255, 94, 205, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.3);
+    position: relative;
+    transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .progress-neon-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+    border-radius: 48px;
+  }
+
+  /* === DATA TABLE === */
   .data-table {
     @apply w-full font-mono text-sm;
   }
 
   .data-table th {
-    @apply text-left p-2 border-b-2 border-lab-cyan/30 text-lab-cyan
-           uppercase text-xs tracking-wider;
+    @apply text-left p-2 uppercase text-xs tracking-wider;
+    background: linear-gradient(90deg, #ff5ecd 0%, #a34bff 25%, #00eaff 50%, #a34bff 75%, #ff5ecd 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: holographic-shimmer 3s ease-in-out infinite;
+    border-bottom: 2px solid rgba(255, 156, 255, 0.3);
   }
 
   .data-table td {
-    @apply p-2 border-b border-lab-border text-lab-text-primary;
+    @apply p-2 text-lab-text-primary;
+    border-bottom: 1px solid rgba(255, 156, 255, 0.15);
   }
 
-  /* Monitor display */
+  /* === MONITOR DISPLAY === */
   .monitor {
-    @apply bg-black border-2 border-lab-cyan p-4 font-mono relative overflow-hidden;
-    border-radius: 2px;
-    box-shadow: inset 0 0 20px rgba(0, 217, 255, 0.1);
+    @apply bg-black p-4 font-mono relative overflow-hidden;
+    border: 3px solid #00eaff;
+    border-radius: 24px;
+    box-shadow: inset 0 0 20px rgba(0, 234, 255, 0.2), 0 0 30px rgba(0, 234, 255, 0.3);
   }
 
   .monitor-label {
-    @apply text-xs uppercase tracking-wider text-lab-cyan mb-1;
+    @apply text-xs uppercase tracking-wider;
+    color: #00eaff;
+    text-shadow: 0 0 10px rgba(0, 234, 255, 0.8);
+    margin-bottom: var(--space-1);
   }
 
   .monitor-value {
-    @apply text-2xl font-bold text-lab-cyan;
-    text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+    @apply text-2xl font-bold;
+    color: #00eaff;
+    text-shadow: 0 0 20px rgba(0, 234, 255, 0.8), 0 0 40px rgba(0, 234, 255, 0.5);
   }
 
-  /* Heat map bar */
-  .heatmap-bar {
-    @apply h-6 relative overflow-hidden bg-black;
-    border-radius: 2px;
+  /* === BADGE STYLES === */
+  .badge-chrome {
+    padding: var(--space-2) var(--space-4);
+    background: linear-gradient(135deg, #f0f0ff 0%, #c8c8ff 50%, #f0f0ff 100%);
+    color: #070314;
+    border-radius: 48px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 
-  /* Clinical button styles */
-  .btn-clinical-good {
-    @apply bg-black border-2 border-lab-cyan text-lab-cyan
-           hover:bg-lab-cyan/20 hover:shadow-glow-cyan;
+  .badge-cert {
+    @apply bg-lab-bg-elevated px-4 py-3
+           font-mono text-xs uppercase tracking-wider
+           transition-all;
+    border: 2px solid rgba(255, 156, 255, 0.3);
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   }
 
-  .btn-clinical-hard {
-    @apply bg-black border-2 border-orange-500 text-orange-500
-           hover:bg-orange-500/20 hover:shadow-glow-alert;
+  .badge-cert:hover {
+    border-color: #00eaff;
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.4);
   }
 
-  .btn-clinical-again {
-    @apply bg-black border-2 border-lab-alert text-lab-alert
-           hover:bg-lab-alert/20 hover:shadow-glow-alert;
-  }
-
-  .btn-clinical-easy {
-    @apply bg-black border-2 border-lab-mint text-lab-mint
-           hover:bg-lab-mint/20 hover:shadow-glow-mint;
-  }
-
-  /* Loading skeleton */
+  /* === LOADING SKELETON === */
   .skeleton {
     @apply animate-pulse bg-lab-bg-elevated;
-    border-radius: 2px;
+    border-radius: 24px;
   }
 
-  /* Badge styles - Certificate style */
-  .badge-cert {
-    @apply bg-lab-bg-elevated border border-lab-cyan/30 px-4 py-3
-           font-mono text-xs uppercase tracking-wider
-           hover:border-lab-cyan/60 hover:shadow-glow-sm transition-all;
-  }
-
-  /* Page transitions */
+  /* === PAGE TRANSITIONS === */
   .page-enter {
-    @apply animate-fade-in;
+    @apply animate-fade-in-glow;
   }
 
-  /* Data visualization containers */
+  /* === CHART CONTAINERS === */
   .chart-container {
-    @apply bg-black border border-lab-cyan/20 p-4;
-    border-radius: 2px;
+    @apply bg-black p-4;
+    border: 2px solid rgba(255, 156, 255, 0.2);
+    border-radius: 24px;
   }
 
-  /* Glowing text effect */
+  /* === GLOWING TEXT === */
   .text-glow {
-    text-shadow: 0 0 10px currentColor;
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+
+  /* === HOLOGRAPHIC TEXT === */
+  .text-holographic {
+    background: linear-gradient(90deg, #ff5ecd 0%, #a34bff 25%, #00eaff 50%, #a34bff 75%, #ff5ecd 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: holographic-shimmer 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 90, 255, 0.5));
+  }
+
+  /* === NEON RIBBON === */
+  .ribbon-neon {
+    height: 8px;
+    background: linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%);
+    border-radius: 48px;
+    box-shadow: 0 0 24px rgba(255, 90, 255, 0.4), 0 0 48px rgba(255, 90, 255, 0.4);
+    position: relative;
+    overflow: visible;
+  }
+
+  .ribbon-neon::before,
+  .ribbon-neon::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .ribbon-neon::before {
+    left: -10px;
+    background: #ff5ecd;
+    box-shadow: 0 0 16px rgba(255, 94, 205, 0.6);
+  }
+
+  .ribbon-neon::after {
+    right: -10px;
+    background: #00eaff;
+    box-shadow: 0 0 16px rgba(0, 234, 255, 0.6);
   }
 }
 
 @layer utilities {
-  /* Gradient text */
+  /* === GRADIENT TEXT === */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r;
   }
@@ -275,11 +446,14 @@
     @apply text-gradient from-blue-500 via-yellow-500 to-red-500;
   }
 
-  .text-gradient-cyan {
-    @apply text-gradient from-lab-cyan to-lab-mint;
+  .text-gradient-neon {
+    background: linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
-  /* Scrollbar styling */
+  /* === SCROLLBAR STYLING === */
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -290,43 +464,23 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-lab-cyan/30;
-    border-radius: 2px;
+    background: linear-gradient(135deg, #ff5ecd 0%, #00eaff 100%);
+    border-radius: 48px;
+    box-shadow: 0 0 8px rgba(255, 90, 255, 0.4);
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    @apply bg-lab-cyan/50;
+    box-shadow: 0 0 12px rgba(255, 90, 255, 0.6);
   }
 
-  /* Clinical text styles */
-  .text-clinical {
-    @apply font-mono uppercase tracking-wider;
-  }
-
-  /* Scan effect overlay */
-  .scan-overlay {
+  /* === NEON BACKGROUND CLASS === */
+  .bg-neon-grid {
+    background: linear-gradient(180deg, #070314 0%, #0d0520 50%, #140928 100%);
     position: relative;
-  }
-
-  .scan-overlay::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 217, 255, 0.03) 2px,
-      rgba(0, 217, 255, 0.03) 3px
-    );
-    pointer-events: none;
   }
 }
 
-/* Custom animations */
+/* === CUSTOM ANIMATIONS === */
 @keyframes scan-line {
   0% {
     top: -100%;
@@ -336,37 +490,35 @@
   }
 }
 
-/* Data flicker for numbers */
 @keyframes data-flicker {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
 }
 
-/* Neural pulse */
 @keyframes neural-pulse {
   0%, 100% {
     box-shadow:
-      0 0 5px rgba(0, 217, 255, 0.5),
-      inset 0 0 5px rgba(0, 217, 255, 0.2);
+      0 0 5px rgba(0, 234, 255, 0.5),
+      inset 0 0 5px rgba(0, 234, 255, 0.2);
   }
   50% {
     box-shadow:
-      0 0 20px rgba(0, 217, 255, 0.8),
-      inset 0 0 10px rgba(0, 217, 255, 0.4);
+      0 0 20px rgba(0, 234, 255, 0.8),
+      inset 0 0 10px rgba(0, 234, 255, 0.4);
   }
 }
 
-/* Heat map gradients */
+/* === HEAT MAP GRADIENTS (with neon treatment) === */
 .heatmap-critical {
-  background: linear-gradient(90deg, #1a0033, #4d0099);
+  background: linear-gradient(90deg, #1a0033, #8b4bff);
 }
 
 .heatmap-weak {
-  background: linear-gradient(90deg, #000066, #0099ff);
+  background: linear-gradient(90deg, #000066, #00a8ff);
 }
 
 .heatmap-moderate {
-  background: linear-gradient(90deg, #006666, #00cccc);
+  background: linear-gradient(90deg, #006666, #00d9c8);
 }
 
 .heatmap-good {
@@ -374,9 +526,9 @@
 }
 
 .heatmap-strong {
-  background: linear-gradient(90deg, #ff3300, #ff0000);
+  background: linear-gradient(90deg, #ff6600, #ffd700);
 }
 
 .heatmap-mastered {
-  background: linear-gradient(90deg, #ff0066, #ffff00);
+  background: linear-gradient(90deg, #00ff88, #00eaff);
 }
