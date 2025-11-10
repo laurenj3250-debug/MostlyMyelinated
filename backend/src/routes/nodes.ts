@@ -7,6 +7,8 @@ import {
   updateNodeStrength,
   getNodesWithStrength,
 } from '../services/nodeStrength';
+import { parseBulkNodes } from '../services/bulkNodeParser';
+import { previewBulkImport, executeBulkCreate, BulkCreateInput } from '../services/bulkNodeService';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -661,6 +663,99 @@ router.delete('/steps/:stepId', async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Delete step error:', error);
     res.status(500).json({ error: 'Failed to delete step' });
+  }
+});
+
+// ============================================================================
+// BULK IMPORT ENDPOINTS
+// ============================================================================
+
+/**
+ * Preview bulk node import
+ * Parses CSV/JSON and returns preview with duplicate detection
+ */
+router.post('/bulk-preview', async (req: AuthRequest, res) => {
+  try {
+    const { data } = req.body;
+
+    if (!data || typeof data !== 'string') {
+      return res.status(400).json({ error: 'data string is required' });
+    }
+
+    // Parse the input data (auto-detects CSV vs JSON)
+    const parseResult = parseBulkNodes(data);
+
+    if (!parseResult.success || parseResult.nodes.length === 0) {
+      return res.status(400).json({
+        error: 'Failed to parse data',
+        details: parseResult.errors,
+        format: parseResult.format,
+      });
+    }
+
+    // Generate preview with duplicate detection
+    const preview = await previewBulkImport(req.user!.id, parseResult.nodes);
+
+    res.json({
+      ...preview,
+      parseErrors: parseResult.errors,
+      format: parseResult.format,
+    });
+  } catch (error: any) {
+    console.error('Bulk preview error:', error);
+    res.status(500).json({
+      error: 'Failed to generate preview',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * Execute bulk node creation
+ * Creates nodes with transaction (all-or-nothing)
+ */
+router.post('/bulk-create', async (req: AuthRequest, res) => {
+  try {
+    const { nodes, autoCreateParents = true } = req.body;
+
+    if (!Array.isArray(nodes) || nodes.length === 0) {
+      return res.status(400).json({ error: 'nodes array is required' });
+    }
+
+    // Validate node structure
+    const validNodes: BulkCreateInput[] = [];
+    for (const node of nodes) {
+      if (!node.parent || !node.node) {
+        continue; // Skip invalid nodes
+      }
+
+      validNodes.push({
+        parent: String(node.parent).trim(),
+        node: String(node.node).trim(),
+        summary: node.summary ? String(node.summary).trim() : '',
+        tags: Array.isArray(node.tags) ? node.tags : [],
+        forceCreate: Boolean(node.forceCreate),
+      });
+    }
+
+    if (validNodes.length === 0) {
+      return res.status(400).json({ error: 'No valid nodes to create' });
+    }
+
+    // Execute bulk create with transaction
+    const result = await executeBulkCreate(
+      req.user!.id,
+      validNodes,
+      autoCreateParents
+    );
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('Bulk create error:', error);
+    res.status(500).json({
+      error: 'Failed to create nodes',
+      details: error.message,
+    });
   }
 });
 

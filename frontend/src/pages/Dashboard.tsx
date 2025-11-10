@@ -409,6 +409,25 @@ export default function Dashboard() {
               >
                 ⚡ QUICK NOTES
               </button>
+              <button
+                onClick={() => navigate('/nodes/bulk-import')}
+                className="relative overflow-hidden px-6 py-2.5 font-display font-extrabold text-sm uppercase tracking-wider rounded-pill border-none transition-all ml-2"
+                style={{
+                  background: 'linear-gradient(135deg, #00ff88 0%, #00eaff 100%)',
+                  color: '#000000',
+                  boxShadow: '0 0 20px rgba(0, 255, 136, 0.4), 0 0 40px rgba(0, 255, 136, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 0 24px rgba(0, 255, 136, 0.6), 0 0 48px rgba(0, 255, 136, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.4), 0 0 40px rgba(0, 255, 136, 0.2)';
+                }}
+              >
+                📦 BULK IMPORT
+              </button>
             </div>
           </div>
 

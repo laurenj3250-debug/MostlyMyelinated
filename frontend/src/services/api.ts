@@ -169,6 +169,21 @@ export const nodes = {
 
   deleteStep: (stepId: string) =>
     api.delete(`/nodes/steps/${stepId}`),
+
+  // Bulk import
+  bulkPreview: (data: { data: string }) =>
+    api.post(`/nodes/bulk-preview`, data),
+
+  bulkCreate: (data: {
+    nodes: Array<{
+      parent: string;
+      node: string;
+      summary: string;
+      tags: string[];
+      forceCreate: boolean;
+    }>;
+    autoCreateParents: boolean;
+  }) => api.post(`/nodes/bulk-create`, data),
 };
 
 // Facts API
