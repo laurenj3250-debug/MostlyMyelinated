@@ -5,15 +5,20 @@ interface SparklineData {
 
 interface Props {
   data: SparklineData[];
-  width?: number;
+  width?: number | string;
   height?: number;
   className?: string;
+  color?: string;
+  showGrid?: boolean;
 }
 
-export default function Sparkline({ data, width = 100, height = 30, className = '' }: Props) {
+export default function Sparkline({ data, width = 100, height = 30, className = '', color = '#00d9ff', showGrid = false }: Props) {
   if (!data || data.length === 0) {
     return null;
   }
+
+  // Convert width to number if it's a string percentage
+  const numericWidth = typeof width === 'string' ? 300 : width;
 
   // Find min and max for scaling
   const values = data.map(d => d.strength);
@@ -23,7 +28,7 @@ export default function Sparkline({ data, width = 100, height = 30, className = 
 
   // Scale points to fit in the viewBox
   const padding = 2;
-  const scaleX = (width - padding * 2) / Math.max(data.length - 1, 1);
+  const scaleX = (numericWidth - padding * 2) / Math.max(data.length - 1, 1);
   const scaleY = (height - padding * 2) / range;
 
   // Generate SVG path
@@ -35,48 +40,34 @@ export default function Sparkline({ data, width = 100, height = 30, className = 
 
   const pathD = `M ${points.join(' L ')}`;
 
-  // Determine stroke color based on trend
-  const trend = data.length > 1 ? data[data.length - 1].strength - data[0].strength : 0;
-  const strokeColor = trend > 0
-    ? 'url(#gradient-up)'
-    : trend < 0
-    ? 'url(#gradient-down)'
-    : 'url(#gradient-neutral)';
-
   return (
     <svg
       width={width}
       height={height}
       className={`inline-block ${className}`}
-      viewBox={`0 0 ${width} ${height}`}
+      viewBox={`0 0 ${numericWidth} ${height}`}
     >
-      <defs>
-        <linearGradient id="gradient-up" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#22c55e" stopOpacity="1" />
-        </linearGradient>
-        <linearGradient id="gradient-down" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#ef4444" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#dc2626" stopOpacity="1" />
-        </linearGradient>
-        <linearGradient id="gradient-neutral" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#6b7280" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#9ca3af" stopOpacity="1" />
-        </linearGradient>
-      </defs>
+      {/* Grid lines */}
+      {showGrid && (
+        <g opacity="0.1">
+          <line x1="0" y1={height / 4} x2={numericWidth} y2={height / 4} stroke={color} strokeWidth="0.5" />
+          <line x1="0" y1={height / 2} x2={numericWidth} y2={height / 2} stroke={color} strokeWidth="0.5" />
+          <line x1="0" y1={(height * 3) / 4} x2={numericWidth} y2={(height * 3) / 4} stroke={color} strokeWidth="0.5" />
+        </g>
+      )}
 
       {/* Fill area under the line */}
       <path
-        d={`${pathD} L ${width - padding},${height - padding} L ${padding},${height - padding} Z`}
-        fill={strokeColor}
-        opacity="0.2"
+        d={`${pathD} L ${numericWidth - padding},${height - padding} L ${padding},${height - padding} Z`}
+        fill={color}
+        opacity="0.15"
       />
 
       {/* Line */}
       <path
         d={pathD}
         fill="none"
-        stroke={strokeColor}
+        stroke={color}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -91,9 +82,9 @@ export default function Sparkline({ data, width = 100, height = 30, className = 
             key={i}
             cx={x}
             cy={y}
-            r="1.5"
-            fill={strokeColor}
-            opacity="0.8"
+            r="2"
+            fill={color}
+            opacity="0.9"
           />
         );
       })}

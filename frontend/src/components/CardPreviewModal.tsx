@@ -68,23 +68,24 @@ export default function CardPreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border-2 border-lab-cyan max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" style={{ borderRadius: '2px' }}>
         {/* Header */}
-        <div className="border-b p-6">
+        <div className="border-b-2 border-lab-cyan/30 p-6 bg-lab-card/30">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Preview & Edit Cards</h2>
-              <p className="text-gray-600 mt-1">
-                Review and edit the generated cards before saving
+              <h2 className="text-2xl font-mono font-bold uppercase text-lab-cyan">FLASHCARD PREVIEW - {cards.length} CARDS</h2>
+              <p className="text-xs font-mono text-lab-text-secondary mt-2 uppercase">
+                REVIEW AND EDIT GENERATED CARDS BEFORE CONFIRMATION
               </p>
-              <p className="text-sm text-gray-500 mt-2">
-                <span className="font-medium">Fact:</span> {factStatement}
+              <p className="text-xs font-mono text-lab-text-tertiary mt-2 border-l-2 border-lab-mint/50 pl-3">
+                <span className="font-bold text-lab-mint">SOURCE FACT:</span> {factStatement}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-lab-alert/20 border border-lab-border hover:border-lab-alert text-lab-text-tertiary hover:text-lab-alert transition-all"
+              style={{ borderRadius: '2px' }}
             >
               <X className="w-5 h-5" />
             </button>
@@ -92,50 +93,56 @@ export default function CardPreviewModal({
         </div>
 
         {/* Cards List */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-lab-background/50">
           {cards.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              No cards generated. Click "Add Card" to create one.
+            <div className="text-center py-12">
+              <div className="text-4xl mb-3">⚠️</div>
+              <p className="text-sm font-mono text-lab-text-tertiary uppercase">
+                NO CARDS GENERATED. CLICK "ADD CARD" TO CREATE ONE.
+              </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {cards.map((card, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="bg-black border border-lab-border hover:border-lab-cyan/50 p-4 transition-all"
+                  style={{ borderRadius: '2px' }}
                 >
                   {editingIndex === index && editedCard ? (
                     // Edit mode
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Front (Question)
+                        <label className="block text-xs font-mono text-lab-text-tertiary uppercase mb-1">
+                          FRONT (STIMULUS)
                         </label>
                         <textarea
                           value={editedCard.front}
                           onChange={(e) =>
                             setEditedCard({ ...editedCard, front: e.target.value })
                           }
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full bg-lab-card border-2 border-lab-border focus:border-lab-cyan text-lab-text-primary font-mono px-3 py-2 outline-none transition-all"
+                          style={{ borderRadius: '2px' }}
                           rows={2}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Back (Answer)
+                        <label className="block text-xs font-mono text-lab-text-tertiary uppercase mb-1">
+                          BACK (RESPONSE)
                         </label>
                         <textarea
                           value={editedCard.back}
                           onChange={(e) =>
                             setEditedCard({ ...editedCard, back: e.target.value })
                           }
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full bg-lab-card border-2 border-lab-border focus:border-lab-cyan text-lab-text-primary font-mono px-3 py-2 outline-none transition-all"
+                          style={{ borderRadius: '2px' }}
                           rows={2}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Hint (Optional)
+                        <label className="block text-xs font-mono text-lab-text-tertiary uppercase mb-1">
+                          HINT (OPTIONAL)
                         </label>
                         <input
                           type="text"
@@ -143,38 +150,42 @@ export default function CardPreviewModal({
                           onChange={(e) =>
                             setEditedCard({ ...editedCard, hint: e.target.value })
                           }
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full bg-lab-card border-2 border-lab-border focus:border-lab-mint text-lab-text-primary font-mono px-3 py-2 outline-none transition-all"
+                          style={{ borderRadius: '2px' }}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Card Type
+                        <label className="block text-xs font-mono text-lab-text-tertiary uppercase mb-1">
+                          CARD TYPE
                         </label>
                         <select
                           value={editedCard.cardType}
                           onChange={(e) =>
                             setEditedCard({ ...editedCard, cardType: e.target.value })
                           }
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full bg-lab-card border-2 border-lab-border focus:border-lab-cyan text-lab-text-primary font-mono px-3 py-2 outline-none transition-all"
+                          style={{ borderRadius: '2px' }}
                         >
-                          <option value="basic">Basic</option>
-                          <option value="reverse">Reverse</option>
-                          <option value="cloze">Cloze</option>
+                          <option value="basic" className="bg-lab-card">BASIC</option>
+                          <option value="reverse" className="bg-lab-card">REVERSE</option>
+                          <option value="cloze" className="bg-lab-card">CLOZE</option>
                         </select>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 pt-2 border-t border-lab-border/30">
                         <button
                           onClick={handleSaveEdit}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-lab-mint border-2 border-lab-mint text-black hover:bg-lab-mint/80 font-mono uppercase font-bold transition-all"
+                          style={{ borderRadius: '2px' }}
                         >
                           <Save className="w-4 h-4" />
-                          Save
+                          SAVE
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 border border-lab-border text-lab-text-tertiary hover:border-lab-alert hover:text-lab-alert font-mono uppercase transition-all"
+                          style={{ borderRadius: '2px' }}
                         >
-                          Cancel
+                          CANCEL
                         </button>
                       </div>
                     </div>
@@ -183,39 +194,42 @@ export default function CardPreviewModal({
                     <div>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="mb-3">
-                            <span className="text-xs font-medium text-gray-500 uppercase">
-                              {card.cardType} Card #{index + 1}
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className="text-xs font-mono text-lab-text-tertiary">
+                              CARD #{String(index + 1).padStart(3, '0')}
+                            </span>
+                            <span className="text-xs font-mono bg-lab-cyan/20 border border-lab-cyan text-lab-cyan px-2 py-0.5 uppercase" style={{ borderRadius: '2px' }}>
+                              {card.cardType}
                             </span>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <h4 className="font-medium text-gray-700 mb-1">Front:</h4>
-                              <p className="text-gray-900">{card.front}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="bg-lab-card/30 border-l-2 border-lab-cyan/50 p-3">
+                              <h4 className="text-xs font-mono text-lab-cyan uppercase mb-1">STIMULUS:</h4>
+                              <p className="text-sm font-mono text-lab-text-primary">{card.front}</p>
                             </div>
-                            <div>
-                              <h4 className="font-medium text-gray-700 mb-1">Back:</h4>
-                              <p className="text-gray-900">{card.back}</p>
+                            <div className="bg-lab-card/30 border-l-2 border-lab-mint/50 p-3">
+                              <h4 className="text-xs font-mono text-lab-mint uppercase mb-1">RESPONSE:</h4>
+                              <p className="text-sm font-mono text-lab-text-primary">{card.back}</p>
                             </div>
                           </div>
                           {card.hint && (
-                            <div className="mt-2">
-                              <span className="text-sm text-gray-600">
-                                <span className="font-medium">Hint:</span> {card.hint}
-                              </span>
+                            <div className="mt-2 text-xs font-mono text-lab-text-tertiary">
+                              <span className="text-lab-mint">HINT:</span> {card.hint}
                             </div>
                           )}
                         </div>
                         <div className="flex gap-2 ml-4">
                           <button
                             onClick={() => handleEdit(index)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 border border-lab-border text-lab-cyan hover:border-lab-cyan hover:bg-lab-cyan/10 transition-all"
+                            style={{ borderRadius: '2px' }}
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(index)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 border border-lab-border text-lab-alert hover:border-lab-alert hover:bg-lab-alert/10 transition-all"
+                            style={{ borderRadius: '2px' }}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -230,28 +244,31 @@ export default function CardPreviewModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-6">
-          <div className="flex justify-between">
+        <div className="border-t-2 border-lab-cyan/30 p-6 bg-lab-card/30">
+          <div className="flex flex-col sm:flex-row justify-between gap-3">
             <button
               onClick={handleAddCard}
-              className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-lab-border text-lab-text-primary hover:border-lab-cyan hover:text-lab-cyan font-mono uppercase transition-all"
+              style={{ borderRadius: '2px' }}
             >
               <Plus className="w-4 h-4" />
-              Add Card
+              ADD CARD
             </button>
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="px-6 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border-2 border-lab-alert/30 text-lab-alert hover:border-lab-alert hover:bg-lab-alert/10 font-mono uppercase transition-all"
+                style={{ borderRadius: '2px' }}
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleSaveAll}
                 disabled={cards.length === 0}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2 bg-lab-cyan border-2 border-lab-cyan text-black hover:bg-lab-mint hover:border-lab-mint disabled:bg-lab-border disabled:border-lab-border disabled:text-lab-text-tertiary disabled:cursor-not-allowed font-mono uppercase font-bold transition-all"
+                style={{ borderRadius: '2px' }}
               >
-                Save {cards.length} Card{cards.length !== 1 ? 's' : ''}
+                CONFIRM {cards.length} CARD{cards.length !== 1 ? 'S' : ''}
               </button>
             </div>
           </div>

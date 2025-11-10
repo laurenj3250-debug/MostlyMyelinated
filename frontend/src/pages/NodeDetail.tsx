@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { nodes, facts as factsApi, images as imagesApi } from '../services/api';
 import { Node, Fact } from '../types';
-import StrengthBadge from '../components/StrengthBadge';
 import Sparkline from '../components/Sparkline';
 import QuickAddBar from '../components/QuickAddBar';
 import AITextExtractor from '../components/AITextExtractor';
 import CardPreviewModal from '../components/CardPreviewModal';
 import ImageUploader from '../components/ImageUploader';
-import { TrendingUp } from 'lucide-react';
+import HeatMapBar from '../components/HeatMapBar';
 
 export default function NodeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -154,10 +153,20 @@ export default function NodeDetail() {
     }
   };
 
+  const getStatusLabel = (strength: number): string => {
+    if (strength < 20) return 'BRAIN-DEAD';
+    if (strength < 40) return 'LMN TETRAPLEGIC';
+    if (strength < 60) return 'NON-AMBULATORY ATAXIC';
+    if (strength < 75) return 'AMBULATORY ATAXIC';
+    if (strength < 85) return 'MILD PARESIS';
+    if (strength < 95) return 'BAR (BRIGHT, ALERT, RESPONSIVE)';
+    return 'HYPERREFLEXIC PROFESSOR';
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-lab-background">
+        <div className="text-lg font-mono text-lab-cyan">LOADING NEUROLOGICAL NODE DATA...</div>
       </div>
     );
   }
@@ -165,57 +174,81 @@ export default function NodeDetail() {
   if (!node) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-lab-background">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-black border-b-2 border-lab-cyan/30">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 mb-2 text-sm">
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-2 mb-3 text-xs font-mono">
+            <button
+              onClick={() => navigate('/')}
+              className="text-lab-cyan hover:text-lab-mint uppercase transition-colors"
+            >
+              DASHBOARD
+            </button>
+            {(node as any).parent && (
+              <>
+                <span className="text-lab-text-tertiary">›</span>
                 <button
-                  onClick={() => navigate('/')}
-                  className="text-blue-600 hover:text-blue-800"
+                  onClick={() => navigate(`/nodes/${(node as any).parent.id}`)}
+                  className="text-lab-cyan hover:text-lab-mint uppercase transition-colors"
                 >
-                  Dashboard
+                  {(node as any).parent.name.toUpperCase()}
                 </button>
-                {(node as any).parent && (
-                  <>
-                    <span className="text-gray-400">›</span>
-                    <button
-                      onClick={() => navigate(`/nodes/${(node as any).parent.id}`)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      {(node as any).parent.name}
-                    </button>
-                  </>
-                )}
-                <span className="text-gray-400">›</span>
-                <span className="text-gray-700">{node.name}</span>
-              </div>
+              </>
+            )}
+            <span className="text-lab-text-tertiary">›</span>
+            <span className="text-lab-text-primary uppercase">{node.name.toUpperCase()}</span>
+          </div>
 
-              <h1 className="text-3xl font-bold text-gray-900">{node.name}</h1>
-              {node.summary && (
-                <p className="text-gray-600 mt-2">{node.summary}</p>
-              )}
-            </div>
-            <div className="flex flex-col items-end gap-3">
-              {node.strengthLabel && (
-                <StrengthBadge
-                  strength={node.strengthLabel.strength}
-                  label={node.strengthLabel.label}
-                  emoji={node.strengthLabel.emoji}
-                  size="lg"
-                />
-              )}
-              {sparklineData.length > 0 && (
-                <div className="flex items-center gap-2 bg-white/80 px-3 py-2 rounded-lg">
-                  <TrendingUp className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs text-gray-600 font-medium">7-day trend:</span>
-                  <Sparkline data={sparklineData} width={100} height={30} />
+          {/* Node Title */}
+          <h1 className="text-3xl font-mono font-bold text-lab-cyan uppercase mb-2">
+            {node.name}
+          </h1>
+
+          {/* Summary */}
+          {node.summary && (
+            <p className="text-sm font-mono text-lab-text-secondary max-w-3xl mb-4">
+              {node.summary}
+            </p>
+          )}
+
+          {/* Strength Display & Trend */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Current Strength Card */}
+            <div className="bg-lab-card border-2 border-lab-cyan/50 p-4" style={{ borderRadius: '2px' }}>
+              <div className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider mb-2">
+                CURRENT STRENGTH
+              </div>
+              <div className="flex items-end gap-2">
+                <div className="text-5xl font-mono font-bold text-lab-cyan">
+                  {node.nodeStrength.toFixed(1)}
                 </div>
-              )}
+                <div className="text-xl font-mono text-lab-text-tertiary mb-1">%</div>
+              </div>
+              <div className="text-xs font-mono text-lab-mint uppercase mt-2">
+                {getStatusLabel(node.nodeStrength)}
+              </div>
+              <div className="mt-3">
+                <HeatMapBar strength={node.nodeStrength} size="medium" showPercentage={false} />
+              </div>
             </div>
+
+            {/* 7-Day Trend Card */}
+            {sparklineData.length > 0 && (
+              <div className="bg-lab-card border border-lab-border p-4" style={{ borderRadius: '2px' }}>
+                <div className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider mb-2">
+                  7-DAY STRENGTH TRAJECTORY
+                </div>
+                <Sparkline
+                  data={sparklineData}
+                  width="100%"
+                  height={80}
+                  color="#00d9ff"
+                  showGrid={true}
+                />
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -223,17 +256,40 @@ export default function NodeDetail() {
       {/* Child Nodes Section */}
       {(node as any).children && (node as any).children.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold mb-4">Child Topics</h2>
+          <h2 className="text-lg font-mono uppercase text-lab-cyan mb-4 border-b border-lab-cyan/30 pb-2">
+            SUBORDINATE TOPICS ({(node as any).children.length})
+          </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(node as any).children.map((child: any) => (
               <div
                 key={child.id}
                 onClick={() => navigate(`/nodes/${child.id}`)}
-                className="card cursor-pointer hover:shadow-lg transition-shadow"
+                className="bg-black border-2 border-lab-border hover:border-lab-cyan/50 p-4 cursor-pointer transition-all group"
+                style={{ borderRadius: '2px' }}
               >
-                <h3 className="font-bold text-lg mb-2">{child.name}</h3>
-                <div className="text-sm text-gray-600">
-                  Strength: {child.nodeStrength}%
+                <h3 className="font-mono font-bold text-base text-lab-text-primary uppercase mb-3 group-hover:text-lab-cyan transition-colors">
+                  {child.name}
+                </h3>
+
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-mono text-lab-text-tertiary uppercase">
+                    STRENGTH:
+                  </span>
+                  <span className="text-lg font-mono font-bold text-lab-cyan">
+                    {child.nodeStrength.toFixed(1)}%
+                  </span>
+                </div>
+
+                <HeatMapBar
+                  strength={child.nodeStrength}
+                  size="small"
+                  showPercentage={false}
+                  animate={false}
+                />
+
+                <div className="text-xs font-mono text-lab-text-tertiary mt-2">
+                  {child._count?.cards || 0} flashcards
                 </div>
               </div>
             ))}
@@ -241,29 +297,57 @@ export default function NodeDetail() {
         </div>
       )}
 
-      {/* Quick Add */}
+      {/* Action Buttons */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <QuickAddBar onAdd={handleAddFact} isLoading={addingFact} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Drill Hardest Cards */}
+          {(node as any)._count && (node as any)._count.cards > 0 && (
+            <button
+              onClick={() => navigate(`/study?mode=drill&nodeId=${id}`)}
+              className="bg-lab-alert/10 border-2 border-lab-alert text-lab-alert hover:bg-lab-alert/20 py-4 px-6 font-mono uppercase font-bold transition-all"
+              style={{ borderRadius: '2px' }}
+            >
+              <div className="text-sm">🚨 EMERGENCY DRILL</div>
+              <div className="text-xs opacity-70 mt-1 normal-case">
+                {(node as any)._count.cards} cards • Hardest first
+              </div>
+            </button>
+          )}
+
+          {/* Add Fact */}
+          <button
+            onClick={() => {
+              const quickAdd = document.getElementById('quick-add-section');
+              quickAdd?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="bg-lab-cyan/10 border-2 border-lab-cyan text-lab-cyan hover:bg-lab-cyan/20 py-4 px-6 font-mono uppercase font-bold transition-all"
+            style={{ borderRadius: '2px' }}
+          >
+            <div className="text-sm">+ ADD FACT</div>
+            <div className="text-xs opacity-70 mt-1 normal-case">
+              Expand knowledge base
+            </div>
+          </button>
+
+          {/* Quick Stats */}
+          <div className="bg-lab-card border border-lab-border py-4 px-6" style={{ borderRadius: '2px' }}>
+            <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">
+              TOTAL CARDS
+            </div>
+            <div className="text-2xl font-mono font-bold text-lab-mint">
+              {(node as any)._count?.cards || 0}
+            </div>
+            <div className="text-xs font-mono text-lab-text-tertiary mt-1">
+              {nodeFacts.length} facts recorded
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Drill Hardest Cards Button */}
-      {(node as any)._count && (node as any)._count.cards > 0 && (
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <button
-            onClick={() => navigate(`/study?mode=drill&nodeId=${id}`)}
-            className="w-full md:w-auto btn bg-gradient-to-r from-red-600 to-pink-600 text-white
-                      font-bold py-4 px-8 rounded-xl shadow-xl
-                      hover:from-red-700 hover:to-pink-700
-                      transform hover:scale-105 active:scale-95
-                      transition-all duration-200
-                      flex items-center justify-center gap-2"
-          >
-            <span className="text-2xl">🔥</span>
-            <span className="text-lg">Drill Hardest Cards</span>
-            <span className="text-sm opacity-90">(up to 20 cards)</span>
-          </button>
-        </div>
-      )}
+      {/* Quick Add */}
+      <div id="quick-add-section" className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <QuickAddBar onAdd={handleAddFact} isLoading={addingFact} />
+      </div>
 
       {/* AI Text Extractor */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -272,20 +356,18 @@ export default function NodeDetail() {
 
       {/* Images Section */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-4">
-          <button
-            onClick={() => setShowImages(!showImages)}
-            className="text-2xl font-bold hover:text-blue-600 transition-colors flex items-center gap-2"
-          >
-            Images ({nodeImages.length})
-            <span className="text-sm text-gray-500">
-              {showImages ? '▼' : '▶'}
-            </span>
-          </button>
-        </div>
+        <button
+          onClick={() => setShowImages(!showImages)}
+          className="text-lg font-mono uppercase text-lab-cyan hover:text-lab-mint mb-4 flex items-center gap-2 transition-all border-b border-lab-cyan/30 pb-2 w-full text-left"
+        >
+          DIAGNOSTIC IMAGES ({nodeImages.length})
+          <span className="text-sm text-lab-text-tertiary ml-auto">
+            {showImages ? '▼ COLLAPSE' : '▶ EXPAND'}
+          </span>
+        </button>
 
         {showImages && (
-          <div className="card">
+          <div className="bg-black border-2 border-lab-border p-6" style={{ borderRadius: '2px' }}>
             <ImageUploader
               onUpload={handleImageUpload}
               currentImages={nodeImages}
@@ -298,43 +380,91 @@ export default function NodeDetail() {
 
       {/* Facts */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-bold mb-4">
-          Facts ({nodeFacts.length})
+        <h2 className="text-lg font-mono uppercase text-lab-cyan mb-4 border-b border-lab-cyan/30 pb-2">
+          KNOWLEDGE BASE ({nodeFacts.length} FACTS)
         </h2>
 
         {nodeFacts.length === 0 ? (
-          <div className="card text-center py-12">
-            <p className="text-gray-600">
-              No facts yet. Use the quick-add bar above to create your first fact!
+          /* Empty State */
+          <div className="bg-black border-2 border-lab-alert/30 p-12 text-center" style={{ borderRadius: '2px' }}>
+            <div className="text-5xl mb-4">⚠️</div>
+            <h3 className="text-xl font-mono uppercase text-lab-alert mb-2">
+              KNOWLEDGE BASE EMPTY
+            </h3>
+            <p className="text-sm font-mono text-lab-text-secondary mb-2">
+              No facts recorded for this neural pathway.
+            </p>
+            <p className="text-xs font-mono text-lab-text-tertiary">
+              Use the quick-add bar above to establish baseline knowledge.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {nodeFacts.map((fact) => (
-              <div key={fact.id} className="card">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {fact.factType}
-                      </span>
-                      {fact.keyTerms.length > 0 && (
-                        <span className="text-xs text-gray-500">
-                          {fact.keyTerms.join(', ')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-lg">{fact.statement}</p>
-                    <div className="mt-2 text-sm text-gray-500">
-                      {(fact as any).cards?.length || 0} cards generated
-                    </div>
+          /* Facts List */
+          <div className="space-y-3">
+            {nodeFacts.map((fact, index) => (
+              <div
+                key={fact.id}
+                className="bg-black border border-lab-border hover:border-lab-cyan/50 p-4 transition-all"
+                style={{ borderRadius: '2px' }}
+              >
+                {/* Fact Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-mono text-lab-text-tertiary">
+                      FACT #{String(index + 1).padStart(3, '0')}
+                    </span>
+                    <span
+                      className="text-xs font-mono bg-lab-cyan/20 border border-lab-cyan text-lab-cyan px-2 py-0.5 uppercase"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      {fact.factType}
+                    </span>
                   </div>
+
                   <button
                     onClick={() => handleDeleteFact(fact.id)}
-                    className="text-red-600 hover:text-red-800 text-sm"
+                    className="text-xs font-mono text-lab-alert hover:text-lab-alert/80 uppercase border border-lab-alert/30 hover:border-lab-alert px-2 py-0.5 transition-all"
+                    style={{ borderRadius: '2px' }}
                   >
-                    Delete
+                    DELETE
                   </button>
+                </div>
+
+                {/* Fact Statement */}
+                <div className="bg-lab-card/30 border-l-2 border-lab-cyan/50 p-3 mb-3">
+                  <p className="font-mono text-lab-text-primary text-sm leading-relaxed">
+                    {fact.statement}
+                  </p>
+                </div>
+
+                {/* Key Terms */}
+                {fact.keyTerms && fact.keyTerms.length > 0 && (
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <span className="text-xs font-mono text-lab-text-tertiary uppercase">
+                      KEY TERMS:
+                    </span>
+                    {fact.keyTerms.map((term: string) => (
+                      <span
+                        key={term}
+                        className="text-xs font-mono bg-lab-mint/20 border border-lab-mint text-lab-mint px-2 py-0.5"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        {term}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Cards Generated */}
+                <div className="flex items-center justify-between text-xs font-mono text-lab-text-tertiary">
+                  <span>
+                    {(fact as any).cards?.length || 0} flashcards generated
+                  </span>
+                  {(fact as any).cards && (fact as any).cards.length > 0 && (
+                    <span className="text-lab-mint">
+                      ACTIVE
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

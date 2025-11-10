@@ -112,11 +112,12 @@ export default function ImageUploader({
     <div className="space-y-4">
       {/* Upload Area */}
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        className={`border-2 border-dashed p-6 text-center transition-all ${
           dragOver
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-lab-cyan bg-lab-cyan/10 shadow-[0_0_20px_rgba(0,217,255,0.3)]'
+            : 'border-lab-border bg-black hover:border-lab-cyan/50'
         } ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        style={{ borderRadius: '2px' }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -132,32 +133,35 @@ export default function ImageUploader({
         />
 
         <div className="flex flex-col items-center">
-          <Upload className="w-10 h-10 text-gray-400 mb-3" />
-          <p className="text-sm font-medium text-gray-700 mb-1">
-            {uploading ? 'Uploading...' : 'Click or drag image to upload'}
+          <Upload className={`w-10 h-10 mb-3 ${dragOver ? 'text-lab-cyan' : 'text-lab-text-tertiary'}`} />
+          <p className="text-sm font-mono font-bold text-lab-text-primary mb-1 uppercase">
+            {uploading ? 'UPLOADING IMAGE...' : 'CLICK OR DRAG IMAGE TO UPLOAD'}
           </p>
-          <p className="text-xs text-gray-500">
-            Supports JPEG, PNG, GIF, WebP (max {maxSize}MB)
+          <p className="text-xs font-mono text-lab-text-tertiary uppercase">
+            JPEG, PNG, GIF, WEBP (MAX {maxSize}MB)
           </p>
         </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-          {error}
+        <div className="bg-lab-alert/10 border-2 border-lab-alert text-lab-alert p-3 text-sm font-mono" style={{ borderRadius: '2px' }}>
+          ⚠️ {error}
         </div>
       )}
 
       {/* Current Images */}
       {currentImages.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">Current Images</h4>
+        <div className="space-y-3">
+          <h4 className="text-sm font-mono font-bold text-lab-cyan uppercase border-b border-lab-border/30 pb-2">
+            IMAGING DATA ({currentImages.length})
+          </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {currentImages.map((image) => (
               <div
                 key={image.id}
-                className="relative group rounded-lg overflow-hidden border border-gray-200"
+                className="relative group overflow-hidden border-2 border-lab-border hover:border-lab-cyan transition-all bg-black"
+                style={{ borderRadius: '2px' }}
               >
                 {image.url ? (
                   <img
@@ -166,19 +170,20 @@ export default function ImageUploader({
                     className="w-full h-32 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
-                    <ImageIcon className="w-8 h-8 text-gray-400" />
+                  <div className="w-full h-32 bg-lab-card flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-lab-text-tertiary" />
                   </div>
                 )}
 
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center gap-2">
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-opacity flex items-center justify-center gap-2">
                   {onAnnotate && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAnnotate(image);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity bg-lab-cyan border-2 border-lab-cyan text-black p-2 hover:bg-lab-mint hover:border-lab-mint"
+                      style={{ borderRadius: '2px' }}
                       title="Annotate"
                     >
                       <Edit className="w-4 h-4" />
@@ -190,7 +195,8 @@ export default function ImageUploader({
                         e.stopPropagation();
                         handleDelete(image.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity bg-lab-alert border-2 border-lab-alert text-white p-2 hover:bg-lab-alert/80"
+                      style={{ borderRadius: '2px' }}
                       title="Delete"
                     >
                       <X className="w-4 h-4" />
@@ -198,10 +204,10 @@ export default function ImageUploader({
                   )}
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-2">
-                  <p className="text-white text-xs truncate">{image.filename}</p>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/80 border-t border-lab-border/50 p-2">
+                  <p className="text-white text-xs font-mono truncate">{image.filename}</p>
                   {image.imageType && (
-                    <span className="text-white/80 text-xs">{image.imageType}</span>
+                    <span className="text-lab-cyan text-xs font-mono uppercase">{image.imageType}</span>
                   )}
                 </div>
               </div>
