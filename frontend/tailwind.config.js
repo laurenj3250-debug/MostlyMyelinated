@@ -27,18 +27,43 @@ export default {
         ],
       },
       colors: {
-        // Neuroscience Lab Theme Primary Colors
+        // Neuroscience Lab Theme Primary Colors (using design tokens)
         'lab': {
-          'bg-primary': '#0a0e1a',     // Very dark navy/slate
-          'bg-card': '#151b2e',         // Dark slate blue
-          'bg-elevated': '#1a2332',     // Slightly lighter slate
-          'cyan': '#00d9ff',            // Primary accent (CT scan cyan)
-          'mint': '#00ff88',            // Secondary accent (active neurons)
-          'alert': '#ff3366',           // Warning/Alert (PET scan hot spots)
-          'border': '#1f2937',          // Subtle borders
-          'text-primary': '#e8eef5',    // Clinical white
-          'text-secondary': '#8a9bb5',  // Muted blue-gray
-          'text-tertiary': '#5a6b85',   // Darker blue-gray
+          // Backgrounds
+          'background': '#0a0e1a',      // var(--bg-void)
+          'bg-primary': '#0a0e1a',      // var(--bg-void) - backwards compat
+          'card': '#151b2e',            // var(--bg-surface)
+          'bg-card': '#151b2e',         // var(--bg-surface) - backwards compat
+          'surface': '#151b2e',         // var(--bg-surface)
+          'elevated': '#1a2238',        // var(--bg-surface-elevated)
+          'bg-elevated': '#1a2238',     // backwards compat
+
+          // Primary colors
+          'cyan': '#00d9ff',            // var(--cyan-primary)
+          'mint': '#00ff88',            // var(--mint-secondary)
+          'alert': '#ff3366',           // var(--pink-alert)
+
+          // Borders
+          'border': 'rgba(139, 149, 168, 0.2)',  // var(--border-default)
+          'border-hover': 'rgba(0, 217, 255, 0.4)', // var(--border-hover)
+
+          // Text colors
+          'text-primary': '#e8eef5',    // var(--text-clinical)
+          'text-clinical': '#e8eef5',   // var(--text-clinical)
+          'text-secondary': '#8b95a8',  // var(--text-muted)
+          'text-muted': '#8b95a8',      // var(--text-muted)
+          'text-tertiary': '#4a5568',   // var(--text-dim)
+          'text-dim': '#4a5568',        // var(--text-dim)
+        },
+        // Neuro status bands (design system)
+        'band': {
+          'braindead': '#5b21b6',       // var(--band-braindead)
+          'lmn': '#3b82f6',             // var(--band-lmn)
+          'nonamb': '#14b8a6',          // var(--band-nonamb)
+          'amb': '#f97316',             // var(--band-amb)
+          'paresis': '#fbbf24',         // var(--band-paresis)
+          'bar': '#22c55e',             // var(--band-bar)
+          'hyper': '#00d9ff',           // var(--band-hyper)
         },
         // Heat Map Colors (PET scan style)
         'heatmap': {
