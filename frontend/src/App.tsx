@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NodeDetail from './pages/NodeDetail';
+import NodeNew from './pages/NodeNew';
 import Study from './pages/Study';
 import TextbookImporter from './pages/TextbookImporter';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -24,6 +25,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/nodes/new"
+              element={
+                <PrivateRoute>
+                  <NodeNew />
                 </PrivateRoute>
               }
             />
