@@ -16,13 +16,22 @@ export interface NodePreview {
     id: string;
     name: string;
     similarity: number;
+    parentName?: string; // Parent of the matched node
   };
   willCreateParent: boolean;
   parentId?: string; // If parent exists
+  parentMismatch?: boolean; // If matched node has different parent
+}
+
+export interface ParentPreview {
+  name: string;
+  exists: boolean;
+  nodeId?: string;
 }
 
 export interface BulkPreviewResult {
   nodes: NodePreview[];
+  parents: ParentPreview[];
   stats: {
     total: number;
     willCreate: number;
@@ -39,13 +48,19 @@ export async function previewBulkImport(
   userId: string,
   parsedNodes: ParsedNodeData[]
 ): Promise<BulkPreviewResult> {
-  // Fetch all existing nodes for this user
+  // Fetch all existing nodes for this user (with parent info for mismatch detection)
   const existingNodes = await prisma.node.findMany({
     where: { userId },
     select: {
       id: true,
       name: true,
       parentId: true,
+      parent: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
@@ -104,6 +119,7 @@ export async function previewBulkImport(
           id: topMatch.item.id,
           name: topMatch.item.name,
           similarity: Math.round(similarity),
+          parentName: topMatch.item.parent?.name,
         };
       }
     }
@@ -112,6 +128,13 @@ export async function previewBulkImport(
     const parentLower = parsed.parent.toLowerCase();
     const willCreateParent = parentsToCreate.has(parentLower);
     const parentId = parentMap.get(parentLower);
+
+    // Detect parent mismatch for STRONG matches
+    let parentMismatch = false;
+    if (matchStatus === 'STRONG' && matchedNode?.parentName) {
+      // Compare parent names (case-insensitive)
+      parentMismatch = matchedNode.parentName.toLowerCase() !== parentLower;
+    }
 
     return {
       parent: parsed.parent,
@@ -122,6 +145,7 @@ export async function previewBulkImport(
       matchedNode,
       willCreateParent,
       parentId,
+      parentMismatch,
     };
   });
 
@@ -129,8 +153,19 @@ export async function previewBulkImport(
   const willSkip = previews.filter(p => p.matchStatus === 'EXACT').length;
   const willCreate = previews.length - willSkip;
 
+  // Build parent preview array
+  const parentPreviews: ParentPreview[] = Array.from(uniqueParents).map(parentName => {
+    const existingParentId = parentMap.get(parentName);
+    return {
+      name: parentName,
+      exists: !!existingParentId,
+      nodeId: existingParentId,
+    };
+  });
+
   return {
     nodes: previews,
+    parents: parentPreviews,
     stats: {
       total: previews.length,
       willCreate,

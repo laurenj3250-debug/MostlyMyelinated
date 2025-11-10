@@ -15,10 +15,18 @@ interface NodePreview {
     id: string;
     name: string;
     similarity: number;
+    parentName?: string;
   };
   willCreateParent: boolean;
   parentId?: string;
+  parentMismatch?: boolean;
   willCreate: boolean; // User's decision (can override)
+}
+
+interface ParentPreview {
+  name: string;
+  exists: boolean;
+  nodeId?: string;
 }
 
 interface PreviewStats {
@@ -52,6 +60,7 @@ export default function BulkImport() {
   const [pastedData, setPastedData] = useState('');
   const [autoCreateParents, setAutoCreateParents] = useState(true);
   const [previews, setPreviews] = useState<NodePreview[]>([]);
+  const [parents, setParents] = useState<ParentPreview[]>([]);
   const [stats, setStats] = useState<PreviewStats | null>(null);
   const [format, setFormat] = useState<string>('');
   const [parseErrors, setParseErrors] = useState<Array<{ row: number; message: string }>>([]);
@@ -72,6 +81,7 @@ export default function BulkImport() {
 
     setLoading(true);
     setPreviews([]);
+    setParents([]);
     setStats(null);
     setParseErrors([]);
 
@@ -86,6 +96,7 @@ export default function BulkImport() {
       }));
 
       setPreviews(previewsWithDecision);
+      setParents(data.parents || []);
       setStats(data.stats);
       setFormat(data.format);
       setParseErrors(data.parseErrors || []);
@@ -357,17 +368,114 @@ export default function BulkImport() {
         {/* Preview Table */}
         {previews.length > 0 && stats && (
           <>
-            {/* Stats Summary */}
-            <div className="mb-4 p-4 rounded-lg" style={{
-              background: 'rgba(0, 234, 255, 0.08)',
-              border: '1px solid rgba(0, 234, 255, 0.3)',
+            {/* Parent Preview Section */}
+            {parents.length > 0 && (
+              <div className="mb-6 p-6 rounded-xl" style={{
+                background: 'linear-gradient(135deg, rgba(0, 234, 255, 0.05) 0%, rgba(163, 75, 255, 0.05) 100%)',
+                border: '2px solid rgba(0, 234, 255, 0.25)',
+                boxShadow: '0 0 20px rgba(0, 234, 255, 0.1)',
+              }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="text-lg font-display font-extrabold uppercase tracking-wider text-neon-cyan"
+                       style={{ textShadow: '0 0 10px rgba(0, 234, 255, 0.8)' }}>
+                    PARENT NODES DETECTED
+                  </div>
+                  <div className="px-3 py-1 rounded-pill text-xs font-mono font-bold" style={{
+                    background: 'rgba(0, 234, 255, 0.15)',
+                    border: '1px solid #00eaff',
+                    color: '#00eaff',
+                  }}>
+                    {parents.length} TOTAL
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {parents.map((parent, idx) => (
+                    <div
+                      key={idx}
+                      className="px-4 py-3 rounded-lg flex items-center justify-between"
+                      style={{
+                        background: parent.exists
+                          ? 'rgba(0, 255, 136, 0.08)'
+                          : 'rgba(0, 234, 255, 0.08)',
+                        border: `1px solid ${parent.exists ? 'rgba(0, 255, 136, 0.3)' : 'rgba(0, 234, 255, 0.3)'}`,
+                      }}
+                    >
+                      <div className="text-sm font-sans text-lab-text-primary font-semibold truncate flex-1">
+                        {parent.name}
+                      </div>
+                      <div className="ml-3 px-2 py-1 rounded text-xs font-bold uppercase whitespace-nowrap" style={{
+                        background: parent.exists
+                          ? 'rgba(0, 255, 136, 0.15)'
+                          : 'rgba(255, 170, 0, 0.15)',
+                        color: parent.exists ? '#00ff88' : '#ffaa00',
+                      }}>
+                        {parent.exists ? '✓ EXISTS' : '+ NEW'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Summary Stats - Enhanced */}
+            <div className="mb-6 p-5 rounded-xl" style={{
+              background: 'linear-gradient(135deg, rgba(0, 234, 255, 0.1) 0%, rgba(163, 75, 255, 0.1) 100%)',
+              border: '2px solid rgba(0, 234, 255, 0.3)',
+              boxShadow: '0 0 25px rgba(0, 234, 255, 0.15)',
             }}>
-              <div className="text-sm font-mono text-neon-cyan">
-                <span className="font-bold">Format:</span> {format.toUpperCase()} |
-                <span className="font-bold"> Total:</span> {stats.total} |
-                <span className="font-bold"> Will Create:</span> {previews.filter(p => p.willCreate).length} |
-                <span className="font-bold"> Will Skip:</span> {previews.filter(p => !p.willCreate).length}
-                {stats.newParents > 0 && <> | <span className="font-bold"> New Parents:</span> {stats.newParents}</>}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-xs font-display font-bold uppercase tracking-wider text-neon-cyan opacity-80">
+                  IMPORT SUMMARY
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {/* Format */}
+                <div className="px-4 py-2 rounded-pill" style={{
+                  background: 'rgba(163, 75, 255, 0.15)',
+                  border: '1px solid rgba(163, 75, 255, 0.4)',
+                }}>
+                  <span className="text-xs font-mono uppercase text-lab-text-dim">Format: </span>
+                  <span className="text-sm font-mono font-bold text-purple-400">{format.toUpperCase()}</span>
+                </div>
+
+                {/* Total */}
+                <div className="px-4 py-2 rounded-pill" style={{
+                  background: 'rgba(0, 234, 255, 0.15)',
+                  border: '1px solid rgba(0, 234, 255, 0.4)',
+                }}>
+                  <span className="text-xs font-mono uppercase text-lab-text-dim">Total: </span>
+                  <span className="text-sm font-mono font-bold text-neon-cyan">{stats.total}</span>
+                </div>
+
+                {/* Will Create */}
+                <div className="px-4 py-2 rounded-pill" style={{
+                  background: 'rgba(0, 255, 136, 0.15)',
+                  border: '1px solid rgba(0, 255, 136, 0.4)',
+                }}>
+                  <span className="text-xs font-mono uppercase text-lab-text-dim">Will Create: </span>
+                  <span className="text-sm font-mono font-bold text-green-400">{previews.filter(p => p.willCreate).length}</span>
+                </div>
+
+                {/* Will Skip */}
+                <div className="px-4 py-2 rounded-pill" style={{
+                  background: 'rgba(255, 51, 102, 0.15)',
+                  border: '1px solid rgba(255, 51, 102, 0.4)',
+                }}>
+                  <span className="text-xs font-mono uppercase text-lab-text-dim">Will Skip: </span>
+                  <span className="text-sm font-mono font-bold text-pink-400">{previews.filter(p => !p.willCreate).length}</span>
+                </div>
+
+                {/* New Parents */}
+                {stats.newParents > 0 && (
+                  <div className="px-4 py-2 rounded-pill" style={{
+                    background: 'rgba(255, 170, 0, 0.15)',
+                    border: '1px solid rgba(255, 170, 0, 0.4)',
+                  }}>
+                    <span className="text-xs font-mono uppercase text-lab-text-dim">New Parents: </span>
+                    <span className="text-sm font-mono font-bold text-yellow-400">{stats.newParents}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -420,7 +528,36 @@ export default function BulkImport() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm font-sans text-lab-text-primary font-semibold">{preview.node}</td>
+                      <td className="px-4 py-3 text-sm font-sans text-lab-text-primary font-semibold">
+                        <div className="flex items-center gap-2">
+                          {preview.node}
+                          {preview.parentMismatch && preview.matchedNode && (
+                            <div
+                              className="group relative inline-flex items-center px-2 py-1 rounded text-xs font-bold uppercase cursor-help"
+                              style={{
+                                background: 'rgba(255, 170, 0, 0.2)',
+                                border: '1px solid #ffaa00',
+                                color: '#ffaa00',
+                              }}
+                            >
+                              ⚠ PARENT MISMATCH
+                              <div
+                                className="absolute left-0 top-full mt-2 px-3 py-2 rounded-lg text-xs font-sans normal-case whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10"
+                                style={{
+                                  background: 'rgba(0, 0, 0, 0.95)',
+                                  border: '1px solid #ffaa00',
+                                  color: '#ffaa00',
+                                  boxShadow: '0 0 20px rgba(255, 170, 0, 0.5)',
+                                }}
+                              >
+                                Existing node "{preview.matchedNode.name}" has parent: {preview.matchedNode.parentName}
+                                <br />
+                                New import specifies parent: {preview.parent}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-xs font-sans text-lab-text-muted">{preview.summary || '—'}</td>
                       <td className="px-4 py-3 text-xs font-mono text-lab-text-dim">
                         {preview.tags.length > 0 ? preview.tags.join(', ') : '—'}
