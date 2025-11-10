@@ -5,7 +5,6 @@ import CriticalNodesPanel from '../components/CriticalNodesPanel';
 import AchievementSummary from '../components/AchievementSummary';
 import NodeStatusCard from '../components/NodeStatusCard';
 import NodeSheet from '../components/NodeSheet';
-import StreakFlame from '../components/StreakFlame';
 import XPBar from '../components/XPBar';
 import SkillTree from '../components/SkillTree';
 import GraphView from '../components/GraphView';
@@ -156,23 +155,84 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-lab-background">
-      {/* Header */}
-      <header className="bg-black border-b-2 border-lab-cyan/30 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-mono font-bold text-lab-cyan">
-              MOSTLYMYELINATED
-            </h1>
-            <p className="text-xs font-mono text-lab-text-tertiary">
-              Neurological Assessment Interface
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            {userLevel && (
-              <StreakFlame streak={userLevel.streak || 0} size="small" />
-            )}
-          </div>
+    <div className="min-h-screen bg-diagnostic-grid">
+      {/* HUD Bar */}
+      <header
+        className="sticky top-0 z-50 flex items-center justify-between px-6 bg-lab-card/80 backdrop-blur-xl border-b border-lab-border/50"
+        style={{
+          height: '72px',
+          boxShadow: 'inset 0 1px 0 rgba(0, 217, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2)'
+        }}
+      >
+        {/* App Title */}
+        <div>
+          <h1
+            className="font-display text-xl font-extrabold tracking-[0.15em] text-lab-cyan uppercase"
+            style={{ textShadow: '0 0 12px rgba(0, 217, 255, 0.5)' }}
+          >
+            MOSTLYMYELINATED
+          </h1>
+        </div>
+
+        {/* Status Group */}
+        <div className="flex items-center gap-4">
+          {/* Overall Status Chip */}
+          {neuroStatus && (
+            <div
+              className="flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold font-mono uppercase tracking-wide"
+              style={{
+                background: `rgba(${neuroStatus.overallScore < 40 ? '59, 130, 246' : neuroStatus.overallScore < 60 ? '20, 184, 166' : neuroStatus.overallScore < 75 ? '249, 115, 22' : '0, 217, 255'}, 0.12)`,
+                borderColor: `rgba(${neuroStatus.overallScore < 40 ? '59, 130, 246' : neuroStatus.overallScore < 60 ? '20, 184, 166' : neuroStatus.overallScore < 75 ? '249, 115, 22' : '0, 217, 255'}, 0.3)`,
+                color: neuroStatus.overallScore < 40 ? '#3b82f6' : neuroStatus.overallScore < 60 ? '#14b8a6' : neuroStatus.overallScore < 75 ? '#f97316' : '#00d9ff',
+                boxShadow: `0 0 8px rgba(${neuroStatus.overallScore < 40 ? '59, 130, 246' : neuroStatus.overallScore < 60 ? '20, 184, 166' : neuroStatus.overallScore < 75 ? '249, 115, 22' : '0, 217, 255'}, 0.15)`,
+                fontSize: '13px'
+              }}
+            >
+              <span>{neuroStatus.statusLabel}</span>
+              <span>•</span>
+              <span>{Math.round(neuroStatus.overallScore)}%</span>
+            </div>
+          )}
+
+          {/* Streak Indicator */}
+          {userLevel && userLevel.streak > 0 && (
+            <div
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-lab-mint/20 text-sm font-semibold font-mono"
+              style={{
+                background: 'rgba(0, 255, 136, 0.08)',
+                color: '#00ff88'
+              }}
+            >
+              <span
+                className="text-base"
+                style={{ filter: 'drop-shadow(0 0 4px rgba(0, 255, 136, 0.6))' }}
+              >
+                🔥
+              </span>
+              <span>{userLevel.streak}</span>
+            </div>
+          )}
+
+          {/* Start Session Button */}
+          <button
+            onClick={() => navigate('/study')}
+            className="px-8 py-3 font-extrabold text-sm tracking-[0.12em] uppercase rounded-full border-none cursor-pointer transition-all duration-250"
+            style={{
+              background: 'linear-gradient(135deg, #00d9ff 0%, #00ff88 100%)',
+              color: '#0a0e1a',
+              boxShadow: '0 0 16px rgba(0, 217, 255, 0.4), 0 0 32px rgba(0, 255, 136, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 217, 255, 0.6), 0 0 40px rgba(0, 255, 136, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 217, 255, 0.4), 0 0 32px rgba(0, 255, 136, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+            }}
+          >
+            START SESSION
+          </button>
         </div>
       </header>
 
@@ -190,7 +250,6 @@ export default function Dashboard() {
         {/* Hero - Neuro Status */}
         <NeuroStatusHero
           overallScore={neuroStatus?.overallScore || 0}
-          statusLabel={neuroStatus?.statusLabel || 'UNKNOWN'}
           nodeDistribution={neuroStatus?.nodeDistribution || {
             brainDead: 0,
             lmnTetraplegic: 0,
