@@ -4,6 +4,7 @@ import NeuroStatusHero from '../components/NeuroStatusHero';
 import CriticalNodesPanel from '../components/CriticalNodesPanel';
 import AchievementSummary from '../components/AchievementSummary';
 import NodeStatusCard from '../components/NodeStatusCard';
+import NodeSheet from '../components/NodeSheet';
 import StreakFlame from '../components/StreakFlame';
 import XPBar from '../components/XPBar';
 import SkillTree from '../components/SkillTree';
@@ -21,6 +22,18 @@ export default function Dashboard() {
   const [userLevel, setUserLevel] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
   const [moduleFilter, setModuleFilter] = useState<string>('All');
+  const [nodeSheetOpen, setNodeSheetOpen] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const openNodeSheet = (nodeId: string) => {
+    setSelectedNodeId(nodeId);
+    setNodeSheetOpen(true);
+  };
+
+  const closeNodeSheet = () => {
+    setNodeSheetOpen(false);
+    setSelectedNodeId(null);
+  };
 
   useEffect(() => {
     loadDashboardData();
@@ -183,6 +196,7 @@ export default function Dashboard() {
           <CriticalNodesPanel
             nodes={criticalNodes}
             totalNodes={neuroStatus.totalNodes}
+            onNodeClick={openNodeSheet}
           />
         )}
 
@@ -276,7 +290,7 @@ export default function Dashboard() {
                     <NodeStatusCard
                       key={node.id}
                       node={node}
-                      onClick={() => navigate(`/nodes/${node.id}`)}
+                      onClick={() => openNodeSheet(node.id)}
                     />
                   ))}
               </div>
@@ -294,6 +308,13 @@ export default function Dashboard() {
           achievements={achievements || []}
         />
       </div>
+
+      {/* Node Sheet Modal */}
+      <NodeSheet
+        isOpen={nodeSheetOpen}
+        onClose={closeNodeSheet}
+        nodeId={selectedNodeId}
+      />
     </div>
   );
 }

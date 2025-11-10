@@ -15,10 +15,19 @@ interface CriticalNode {
 interface CriticalNodesPanelProps {
   nodes: CriticalNode[];
   totalNodes: number;
+  onNodeClick?: (nodeId: string) => void;
 }
 
-export default function CriticalNodesPanel({ nodes, totalNodes }: CriticalNodesPanelProps) {
+export default function CriticalNodesPanel({ nodes, totalNodes, onNodeClick }: CriticalNodesPanelProps) {
   const navigate = useNavigate();
+
+  const handleNodeClick = (nodeId: string) => {
+    if (onNodeClick) {
+      onNodeClick(nodeId);
+    } else {
+      navigate(`/nodes/${nodeId}`);
+    }
+  };
 
   // If no weak nodes, show healthy state
   if (nodes.length === 0) {
@@ -77,7 +86,7 @@ export default function CriticalNodesPanel({ nodes, totalNodes }: CriticalNodesP
             key={node.id}
             className="bg-lab-card border border-lab-border p-4 hover:border-lab-cyan/50 transition-all cursor-pointer"
             style={{ borderRadius: '2px' }}
-            onClick={() => navigate(`/nodes/${node.id}`)}
+            onClick={() => handleNodeClick(node.id)}
           >
             <div className="flex items-start gap-4">
               {/* Rank Number */}
