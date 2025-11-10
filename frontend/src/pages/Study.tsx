@@ -139,8 +139,10 @@ export default function Study() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading session...</div>
+      <div className="flex items-center justify-center min-h-screen bg-lab-bg-primary">
+        <div className="text-holographic font-display text-3xl font-extrabold uppercase tracking-wider animate-pulse-glow-neon">
+          INITIALIZING SESSION HUD...
+        </div>
       </div>
     );
   }
@@ -149,20 +151,39 @@ export default function Study() {
     // Different empty state for weak-drill mode
     if (mode === 'weak-drill') {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-lab-background">
-          <div className="bg-black border-2 border-lab-mint/50 p-8 text-center max-w-md" style={{ borderRadius: '2px' }}>
-            <div className="text-6xl mb-4">✓</div>
-            <h2 className="text-2xl font-mono uppercase text-lab-mint mb-4">NO CRITICAL NODES DETECTED</h2>
-            <p className="text-lg font-mono text-lab-text-primary mb-2">
+        <div className="flex items-center justify-center min-h-screen bg-lab-bg-primary">
+          <div
+            className="p-12 text-center max-w-lg rounded-xl border-fat backdrop-blur-md"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 234, 255, 0.08) 100%)',
+              borderColor: 'rgba(0, 255, 136, 0.4)',
+              boxShadow: '0 0 40px rgba(0, 255, 136, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+            }}
+          >
+            <div className="text-8xl mb-6 animate-pulse-glow-neon" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 255, 136, 0.6))' }}>◆</div>
+            <h2 className="text-3xl font-display font-extrabold uppercase text-neon-cyan mb-4 tracking-wider">NO CRITICAL NODES DETECTED</h2>
+            <p className="text-lg font-sans text-lab-text-primary mb-3">
               All nodes are functioning above the 40% intervention threshold.
             </p>
-            <p className="text-sm font-mono text-lab-text-tertiary mb-6">
+            <p className="text-base font-sans text-lab-text-muted mb-10">
               Neural integrity status: STABLE
             </p>
             <button
               onClick={() => navigate('/')}
-              className="px-6 py-3 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all"
-              style={{ borderRadius: '2px' }}
+              className="px-8 py-4 rounded-pill border-none font-display font-extrabold uppercase tracking-wider transition-all"
+              style={{
+                background: 'linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%)',
+                color: '#ffffff',
+                boxShadow: '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 0 32px rgba(255, 90, 255, 0.7), 0 0 64px rgba(255, 90, 255, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3)';
+              }}
             >
               RETURN TO DASHBOARD
             </button>
@@ -173,20 +194,39 @@ export default function Study() {
 
     // Default empty state for normal/other modes
     return (
-      <div className="flex items-center justify-center min-h-screen bg-lab-background">
-        <div className="bg-black border-2 border-lab-mint/50 p-8 text-center max-w-md" style={{ borderRadius: '2px' }}>
-          <div className="text-6xl mb-4">✓</div>
-          <h2 className="text-2xl font-mono uppercase text-lab-mint mb-4">ALL SYNAPSES FIRING</h2>
-          <p className="text-lg font-mono text-lab-text-primary mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-lab-bg-primary">
+        <div
+          className="p-12 text-center max-w-lg rounded-xl border-fat backdrop-blur-md"
+          style={{
+            background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 234, 255, 0.08) 100%)',
+            borderColor: 'rgba(0, 255, 136, 0.4)',
+            boxShadow: '0 0 40px rgba(0, 255, 136, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <div className="text-8xl mb-6 animate-pulse-glow-neon" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 255, 136, 0.6))' }}>◆</div>
+          <h2 className="text-3xl font-display font-extrabold uppercase text-neon-cyan mb-4 tracking-wider">ALL SYNAPSES FIRING</h2>
+          <p className="text-lg font-sans text-lab-text-primary mb-3">
             No cards due. All neural pathways functioning within normal parameters.
           </p>
-          <p className="text-sm font-mono text-lab-text-tertiary mb-6">
+          <p className="text-base font-sans text-lab-text-muted mb-10">
             Myelin integrity: OPTIMAL
           </p>
           <button
             onClick={() => navigate('/')}
-            className="px-6 py-3 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all"
-            style={{ borderRadius: '2px' }}
+            className="px-8 py-4 rounded-pill border-none font-display font-extrabold uppercase tracking-wider transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #ff5ecd 0%, #a34bff 50%, #00eaff 100%)',
+              color: '#ffffff',
+              boxShadow: '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 0 32px rgba(255, 90, 255, 0.7), 0 0 64px rgba(255, 90, 255, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 0 24px rgba(255, 90, 255, 0.5), 0 0 48px rgba(255, 90, 255, 0.3)';
+            }}
           >
             RETURN TO DASHBOARD
           </button>
@@ -217,17 +257,19 @@ export default function Study() {
   };
 
   return (
-    <div className="min-h-screen bg-diagnostic-grid">
+    <div className="min-h-screen bg-lab-bg-primary">
       {/* HUD Header */}
       <header
-        className="sticky top-0 z-50 bg-lab-card/80 backdrop-blur-xl border-b-2 border-lab-cyan/50"
+        className="sticky top-0 z-50 backdrop-blur-xl border-b-fat"
         style={{
-          boxShadow: 'inset 0 1px 0 rgba(0, 217, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2)'
+          background: 'linear-gradient(135deg, rgba(255, 94, 205, 0.08) 0%, rgba(163, 75, 255, 0.08) 50%, rgba(0, 234, 255, 0.08) 100%)',
+          borderColor: 'rgba(255, 156, 255, 0.3)',
+          boxShadow: '0 0 20px rgba(255, 90, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 py-5 sm:px-8 lg:px-10">
           {/* Top row: Quit, Title, Stats */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             {/* Quit button */}
             <button
               onClick={() => {
@@ -235,8 +277,20 @@ export default function Study() {
                   navigate('/');
                 }
               }}
-              className="bg-lab-card border-2 border-lab-border text-lab-text-primary hover:border-lab-alert hover:text-lab-alert px-4 py-2 font-mono uppercase font-bold text-sm transition-all hover:scale-[1.02]"
-              style={{ borderRadius: '2px' }}
+              className="px-6 py-3 rounded-pill border-medium font-display font-bold text-sm uppercase tracking-wider transition-all"
+              style={{
+                background: 'rgba(255, 94, 205, 0.12)',
+                borderColor: '#ff5ecd',
+                color: '#ff9cff'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 0 16px rgba(255, 94, 205, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             >
               ← QUIT
             </button>
@@ -244,51 +298,50 @@ export default function Study() {
             {/* Session title and progress */}
             <div className="text-center flex-1 px-6">
               <div
-                className="text-xs font-mono uppercase mb-2 tracking-[0.2em]"
+                className="text-sm font-display font-bold uppercase mb-3 tracking-[0.25em]"
                 style={{
-                  color: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff',
+                  color: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff5ecd' : '#00eaff',
                   textShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                    ? '0 0 10px rgba(255, 51, 102, 0.5)'
-                    : '0 0 10px rgba(0, 217, 255, 0.5)'
+                    ? '0 0 12px rgba(255, 94, 205, 0.6)'
+                    : '0 0 12px rgba(0, 234, 255, 0.6)'
                 }}
               >
                 {getSessionTitle()}
               </div>
 
               {/* Large progress indicator */}
-              <div className="flex items-baseline justify-center gap-2 mb-2">
+              <div className="flex items-baseline justify-center gap-3 mb-2">
                 <span
-                  className="text-5xl font-mono font-black"
+                  className="text-7xl font-display font-black animate-pulse-glow-neon"
                   style={{
-                    color: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff',
+                    color: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff5ecd' : '#00eaff',
                     textShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                      ? '0 0 16px rgba(255, 51, 102, 0.6), 0 0 32px rgba(255, 51, 102, 0.3)'
-                      : '0 0 16px rgba(0, 217, 255, 0.6), 0 0 32px rgba(0, 217, 255, 0.3)'
+                      ? '0 0 20px rgba(255, 94, 205, 0.8), 0 0 40px rgba(255, 94, 205, 0.5)'
+                      : '0 0 20px rgba(0, 234, 255, 0.8), 0 0 40px rgba(0, 234, 255, 0.5)'
                   }}
                 >
                   {currentIndex + 1}
                 </span>
-                <span className="text-2xl font-mono text-lab-text-tertiary">/</span>
-                <span className="text-2xl font-mono text-lab-text-secondary">{session.length}</span>
+                <span className="text-3xl font-display text-lab-text-muted opacity-50">/</span>
+                <span className="text-3xl font-display font-semibold text-lab-text-muted">{session.length}</span>
               </div>
             </div>
 
             {/* Stats chip */}
             <div
-              className="flex flex-col items-end gap-1 px-4 py-2 rounded border-2"
+              className="flex flex-col items-end gap-1 px-6 py-3 rounded-pill border-medium"
               style={{
-                borderRadius: '2px',
-                borderColor: 'rgba(0, 217, 255, 0.3)',
-                background: 'rgba(0, 217, 255, 0.05)'
+                borderColor: 'rgba(0, 234, 255, 0.4)',
+                background: 'rgba(0, 234, 255, 0.08)'
               }}
             >
-              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider">
+              <div className="text-xs font-display font-semibold text-lab-text-muted uppercase tracking-wider">
                 ASSESSED
               </div>
-              <div className="text-xl font-mono font-bold text-lab-cyan">
+              <div className="text-2xl font-display font-black text-neon-cyan" style={{ textShadow: '0 0 8px rgba(0, 234, 255, 0.6)' }}>
                 {sessionStats.reviewed}/{session.length}
               </div>
-              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider">
+              <div className="text-xs font-display font-semibold text-lab-text-muted uppercase tracking-wider">
                 SUCCESS: {successRate}%
               </div>
             </div>
@@ -296,48 +349,49 @@ export default function Study() {
 
           {/* Enhanced Progress bar with scanning line */}
           <div
-            className="h-4 bg-black border-2 relative overflow-hidden"
+            className="h-6 relative overflow-hidden rounded-pill border-medium"
             style={{
-              borderRadius: '2px',
-              borderColor: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff'
+              background: 'rgba(0, 0, 0, 0.6)',
+              borderColor: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff5ecd' : '#00eaff'
             }}
           >
             {/* Progress fill */}
             <div
-              className="absolute inset-y-0 left-0 transition-all duration-500"
+              className="absolute inset-y-0 left-0 transition-all duration-500 rounded-pill"
               style={{
                 width: `${progress}%`,
                 background: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                  ? 'linear-gradient(90deg, #ff3366 0%, rgba(255, 51, 102, 0.6) 100%)'
-                  : 'linear-gradient(90deg, #00d9ff 0%, rgba(0, 217, 255, 0.6) 100%)',
+                  ? 'linear-gradient(90deg, #ff5ecd 0%, rgba(255, 94, 205, 0.6) 100%)'
+                  : 'linear-gradient(90deg, #00eaff 0%, rgba(0, 234, 255, 0.6) 100%)',
                 boxShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                  ? 'inset 0 0 12px rgba(255, 51, 102, 0.5)'
-                  : 'inset 0 0 12px rgba(0, 217, 255, 0.5)'
+                  ? 'inset 0 0 16px rgba(255, 94, 205, 0.6), 0 0 12px rgba(255, 94, 205, 0.4)'
+                  : 'inset 0 0 16px rgba(0, 234, 255, 0.6), 0 0 12px rgba(0, 234, 255, 0.4)'
               }}
             />
 
             {/* Scanning line at progress position */}
             <div
-              className="absolute inset-y-0 w-0.5"
+              className="absolute inset-y-0 w-1"
               style={{
                 background: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                  ? 'linear-gradient(to right, transparent, #ff3366, transparent)'
-                  : 'linear-gradient(to right, transparent, #00d9ff, transparent)',
+                  ? 'linear-gradient(to right, transparent, #ff5ecd, transparent)'
+                  : 'linear-gradient(to right, transparent, #00eaff, transparent)',
                 boxShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                  ? '0 0 8px rgba(255, 51, 102, 0.8)'
-                  : '0 0 8px rgba(0, 217, 255, 0.8)',
+                  ? '0 0 10px rgba(255, 94, 205, 0.9)'
+                  : '0 0 10px rgba(0, 234, 255, 0.9)',
                 left: `${progress}%`,
-                animation: 'scan 2s ease-in-out infinite'
+                transform: 'translateX(-50%)',
+                animation: 'pulse 2s ease-in-out infinite'
               }}
             />
 
             {/* Percentage label */}
             <div className="absolute inset-0 flex items-center justify-center">
               <span
-                className="text-xs font-mono font-bold"
+                className="text-sm font-display font-extrabold tracking-wide"
                 style={{
-                  color: progress > 50 ? '#000' : (mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff'),
-                  textShadow: progress > 50 ? 'none' : '0 0 6px rgba(0, 217, 255, 0.8)'
+                  color: progress > 50 ? '#000' : '#fff',
+                  textShadow: progress > 50 ? 'none' : '0 0 8px currentColor'
                 }}
               >
                 {progress.toFixed(0)}%
@@ -357,36 +411,41 @@ export default function Study() {
 
       {/* Stats footer HUD */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-lab-card/80 backdrop-blur-xl border-t-2 border-lab-cyan/50 py-4"
+        className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t-fat py-5"
         style={{
-          boxShadow: 'inset 0 -1px 0 rgba(0, 217, 255, 0.05), 0 -4px 12px rgba(0, 0, 0, 0.2)'
+          background: 'linear-gradient(135deg, rgba(255, 94, 205, 0.08) 0%, rgba(163, 75, 255, 0.08) 50%, rgba(0, 234, 255, 0.08) 100%)',
+          borderColor: 'rgba(255, 156, 255, 0.3)',
+          boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.1), 0 -8px 32px rgba(0, 0, 0, 0.4)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
             {/* FAILED */}
             <div
-              className="flex flex-col items-center p-3 bg-black/40 border-2 border-lab-alert/30 hover:border-lab-alert/60 transition-all"
-              style={{ borderRadius: '2px' }}
+              className="flex flex-col items-center p-4 rounded-lg border-medium transition-all"
+              style={{
+                background: 'rgba(255, 94, 205, 0.08)',
+                borderColor: 'rgba(255, 94, 205, 0.4)'
+              }}
             >
-              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+              <div className="text-xs font-display font-semibold text-lab-text-muted uppercase tracking-wider mb-2">
                 FAILED
               </div>
               <div
-                className="text-3xl font-mono font-black"
+                className="text-4xl font-display font-black"
                 style={{
-                  color: '#ff3366',
-                  textShadow: '0 0 12px rgba(255, 51, 102, 0.5)'
+                  color: '#ff5ecd',
+                  textShadow: '0 0 16px rgba(255, 94, 205, 0.6)'
                 }}
               >
                 {sessionStats.again}
               </div>
-              <div className="w-full h-1.5 bg-black border border-lab-alert/30 mt-2 overflow-hidden" style={{ borderRadius: '1px' }}>
+              <div className="w-full h-2 bg-black/60 border-thin mt-3 overflow-hidden rounded-pill" style={{ borderColor: 'rgba(255, 94, 205, 0.3)' }}>
                 <div
-                  className="h-full bg-lab-alert transition-all"
+                  className="h-full bg-gradient-to-r from-neon-pink to-neon-hot transition-all rounded-pill"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.again / sessionStats.reviewed * 100) : 0}%`,
-                    boxShadow: '0 0 8px rgba(255, 51, 102, 0.5)'
+                    boxShadow: '0 0 10px rgba(255, 94, 205, 0.6), inset 0 0 8px rgba(255, 94, 205, 0.3)'
                   }}
                 />
               </div>
@@ -394,36 +453,30 @@ export default function Study() {
 
             {/* PARTIAL */}
             <div
-              className="flex flex-col items-center p-3 bg-black/40 border-2 hover:border-orange-500/60 transition-all"
+              className="flex flex-col items-center p-4 rounded-lg border-medium transition-all"
               style={{
-                borderRadius: '2px',
-                borderColor: 'rgba(249, 115, 22, 0.3)'
+                background: 'rgba(163, 75, 255, 0.08)',
+                borderColor: 'rgba(163, 75, 255, 0.4)'
               }}
             >
-              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+              <div className="text-xs font-display font-semibold text-lab-text-muted uppercase tracking-wider mb-2">
                 PARTIAL
               </div>
               <div
-                className="text-3xl font-mono font-black"
+                className="text-4xl font-display font-black"
                 style={{
-                  color: '#f97316',
-                  textShadow: '0 0 12px rgba(249, 115, 22, 0.5)'
+                  color: '#a34bff',
+                  textShadow: '0 0 16px rgba(163, 75, 255, 0.6)'
                 }}
               >
                 {sessionStats.hard}
               </div>
-              <div
-                className="w-full h-1.5 bg-black border mt-2 overflow-hidden"
-                style={{
-                  borderRadius: '1px',
-                  borderColor: 'rgba(249, 115, 22, 0.3)'
-                }}
-              >
+              <div className="w-full h-2 bg-black/60 border-thin mt-3 overflow-hidden rounded-pill" style={{ borderColor: 'rgba(163, 75, 255, 0.3)' }}>
                 <div
-                  className="h-full bg-orange-500 transition-all"
+                  className="h-full bg-gradient-to-r from-neon-purple to-neon-fuchsia transition-all rounded-pill"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.hard / sessionStats.reviewed * 100) : 0}%`,
-                    boxShadow: '0 0 8px rgba(249, 115, 22, 0.5)'
+                    boxShadow: '0 0 10px rgba(163, 75, 255, 0.6), inset 0 0 8px rgba(163, 75, 255, 0.3)'
                   }}
                 />
               </div>
@@ -431,27 +484,30 @@ export default function Study() {
 
             {/* SUCCESS */}
             <div
-              className="flex flex-col items-center p-3 bg-black/40 border-2 border-lab-cyan/30 hover:border-lab-cyan/60 transition-all"
-              style={{ borderRadius: '2px' }}
+              className="flex flex-col items-center p-4 rounded-lg border-medium transition-all"
+              style={{
+                background: 'rgba(0, 234, 255, 0.08)',
+                borderColor: 'rgba(0, 234, 255, 0.4)'
+              }}
             >
-              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+              <div className="text-xs font-display font-semibold text-lab-text-muted uppercase tracking-wider mb-2">
                 SUCCESS
               </div>
               <div
-                className="text-3xl font-mono font-black"
+                className="text-4xl font-display font-black"
                 style={{
-                  color: '#00d9ff',
-                  textShadow: '0 0 12px rgba(0, 217, 255, 0.6)'
+                  color: '#00eaff',
+                  textShadow: '0 0 16px rgba(0, 234, 255, 0.6)'
                 }}
               >
                 {sessionStats.good}
               </div>
-              <div className="w-full h-1.5 bg-black border border-lab-cyan/30 mt-2 overflow-hidden" style={{ borderRadius: '1px' }}>
+              <div className="w-full h-2 bg-black/60 border-thin mt-3 overflow-hidden rounded-pill" style={{ borderColor: 'rgba(0, 234, 255, 0.3)' }}>
                 <div
-                  className="h-full bg-lab-cyan transition-all"
+                  className="h-full bg-gradient-to-r from-neon-cyan to-band-hyper transition-all rounded-pill"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.good / sessionStats.reviewed * 100) : 0}%`,
-                    boxShadow: '0 0 8px rgba(0, 217, 255, 0.6)'
+                    boxShadow: '0 0 10px rgba(0, 234, 255, 0.6), inset 0 0 8px rgba(0, 234, 255, 0.3)'
                   }}
                 />
               </div>
@@ -459,27 +515,30 @@ export default function Study() {
 
             {/* PERFECT */}
             <div
-              className="flex flex-col items-center p-3 bg-black/40 border-2 border-lab-mint/30 hover:border-lab-mint/60 transition-all"
-              style={{ borderRadius: '2px' }}
+              className="flex flex-col items-center p-4 rounded-lg border-medium transition-all"
+              style={{
+                background: 'rgba(0, 255, 136, 0.08)',
+                borderColor: 'rgba(0, 255, 136, 0.4)'
+              }}
             >
-              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+              <div className="text-xs font-display font-semibold text-lab-text-muted uppercase tracking-wider mb-2">
                 PERFECT
               </div>
               <div
-                className="text-3xl font-mono font-black"
+                className="text-4xl font-display font-black"
                 style={{
                   color: '#00ff88',
-                  textShadow: '0 0 12px rgba(0, 255, 136, 0.6)'
+                  textShadow: '0 0 16px rgba(0, 255, 136, 0.6)'
                 }}
               >
                 {sessionStats.easy}
               </div>
-              <div className="w-full h-1.5 bg-black border border-lab-mint/30 mt-2 overflow-hidden" style={{ borderRadius: '1px' }}>
+              <div className="w-full h-2 bg-black/60 border-thin mt-3 overflow-hidden rounded-pill" style={{ borderColor: 'rgba(0, 255, 136, 0.3)' }}>
                 <div
-                  className="h-full bg-lab-mint transition-all"
+                  className="h-full bg-gradient-to-r from-band-bar to-neon-cyan transition-all rounded-pill"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.easy / sessionStats.reviewed * 100) : 0}%`,
-                    boxShadow: '0 0 8px rgba(0, 255, 136, 0.6)'
+                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.6), inset 0 0 8px rgba(0, 255, 136, 0.3)'
                   }}
                 />
               </div>
