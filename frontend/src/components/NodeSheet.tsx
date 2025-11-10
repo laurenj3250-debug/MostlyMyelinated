@@ -71,50 +71,64 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
     if (strength < 20)
       return {
         label: 'BRAIN-DEAD',
-        color: 'bg-gray-600',
-        textColor: 'text-gray-400',
-        borderColor: 'border-gray-600'
+        color: 'bg-band-braindead',
+        textColor: 'text-band-braindead',
+        borderColor: 'border-band-braindead',
+        hex: '#5b21b6',
+        glow: 'rgba(91, 33, 182, 0.5)'
       };
     if (strength < 40)
       return {
         label: 'LMN TETRAPLEGIC',
-        color: 'bg-red-900',
-        textColor: 'text-red-500',
-        borderColor: 'border-red-900'
+        color: 'bg-band-lmn',
+        textColor: 'text-band-lmn',
+        borderColor: 'border-band-lmn',
+        hex: '#3b82f6',
+        glow: 'rgba(59, 130, 246, 0.5)'
       };
     if (strength < 60)
       return {
-        label: 'NON-AMBULATORY ATAXIC',
-        color: 'bg-red-600',
-        textColor: 'text-red-400',
-        borderColor: 'border-red-600'
+        label: 'NON-AMBULATORY',
+        color: 'bg-band-nonamb',
+        textColor: 'text-band-nonamb',
+        borderColor: 'border-band-nonamb',
+        hex: '#14b8a6',
+        glow: 'rgba(20, 184, 166, 0.5)'
       };
     if (strength < 75)
       return {
         label: 'AMBULATORY ATAXIC',
-        color: 'bg-orange-500',
-        textColor: 'text-orange-400',
-        borderColor: 'border-orange-500'
+        color: 'bg-band-amb',
+        textColor: 'text-band-amb',
+        borderColor: 'border-band-amb',
+        hex: '#f97316',
+        glow: 'rgba(249, 115, 22, 0.5)'
       };
     if (strength < 85)
       return {
         label: 'MILD PARESIS',
-        color: 'bg-yellow-500',
-        textColor: 'text-yellow-400',
-        borderColor: 'border-yellow-500'
+        color: 'bg-band-paresis',
+        textColor: 'text-band-paresis',
+        borderColor: 'border-band-paresis',
+        hex: '#fbbf24',
+        glow: 'rgba(251, 191, 36, 0.5)'
       };
     if (strength < 95)
       return {
         label: 'BAR',
-        color: 'bg-green-500',
-        textColor: 'text-green-400',
-        borderColor: 'border-green-500'
+        color: 'bg-band-bar',
+        textColor: 'text-band-bar',
+        borderColor: 'border-band-bar',
+        hex: '#22c55e',
+        glow: 'rgba(34, 197, 94, 0.5)'
       };
     return {
-      label: 'HYPERREFLEXIC PROFESSOR',
-      color: 'bg-lab-cyan',
-      textColor: 'text-lab-cyan',
-      borderColor: 'border-lab-cyan'
+      label: 'HYPERREFLEXIC',
+      color: 'bg-band-hyper',
+      textColor: 'text-band-hyper',
+      borderColor: 'border-band-hyper',
+      hex: '#00d9ff',
+      glow: 'rgba(0, 217, 255, 0.6)'
     };
   };
 
@@ -167,46 +181,143 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
         ) : (
           <>
             {/* Header */}
-            <div className="border-b-2 border-lab-cyan/30 p-6 bg-lab-card/30">
-              <div className="flex items-start justify-between">
+            <div
+              className="border-b-2 p-6 bg-lab-card/50 relative overflow-hidden"
+              style={{
+                borderColor: status?.hex,
+                boxShadow: `inset 0 0 40px ${status?.glow}`
+              }}
+            >
+              {/* Background accent */}
+              <div
+                className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle, ${status?.glow} 0%, transparent 70%)`,
+                  opacity: 0.2
+                }}
+              />
+
+              {/* Scanline overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 217, 255, 0.02) 2px,
+                    rgba(0, 217, 255, 0.02) 3px
+                  )`
+                }}
+              />
+
+              <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
                   {/* Module tag */}
                   {node.module && (
-                    <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-2">
-                      {node.module}
+                    <div className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider mb-2">
+                      MODULE: {node.module}
                     </div>
                   )}
 
                   {/* Node name */}
-                  <h2 className="text-2xl font-mono font-bold text-lab-cyan mb-3">
+                  <h2
+                    className="text-3xl font-mono font-black text-lab-cyan mb-4 uppercase tracking-wide"
+                    style={{ textShadow: '0 0 16px rgba(0, 217, 255, 0.5)' }}
+                  >
                     {node.name}
                   </h2>
 
-                  {/* Status */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <span
-                      className={`text-sm font-mono font-bold uppercase px-3 py-1 ${status?.color} text-white`}
-                      style={{ borderRadius: '2px' }}
-                    >
-                      {status?.label}
-                    </span>
-                    <span className="text-3xl font-mono font-bold text-lab-cyan">
-                      {Math.round(node.nodeStrength)}%
-                    </span>
+                  {/* Status and Strength in HUD style */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider">
+                        STATUS:
+                      </div>
+                      <span
+                        className={`text-sm font-mono font-bold uppercase px-3 py-1 border-2 ${status?.textColor}`}
+                        style={{
+                          borderRadius: '2px',
+                          borderColor: status?.hex,
+                          background: `${status?.hex}20`,
+                          boxShadow: `0 0 10px ${status?.glow}`
+                        }}
+                      >
+                        {status?.label}
+                      </span>
+                    </div>
+
+                    <div className="h-6 w-px bg-lab-border" />
+
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-xs font-mono text-lab-text-tertiary uppercase tracking-wider">
+                        STRENGTH:
+                      </div>
+                      <span
+                        className="text-3xl font-mono font-black"
+                        style={{
+                          color: status?.hex,
+                          textShadow: `0 0 12px ${status?.glow}, 0 0 24px ${status?.glow}`
+                        }}
+                      >
+                        {Math.round(node.nodeStrength)}%
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Progress bar */}
-                  <div className="h-2 bg-lab-card border border-lab-border overflow-hidden mb-3" style={{ borderRadius: '1px' }}>
+                  {/* Enhanced Progress bar */}
+                  <div
+                    className="h-6 bg-black border-2 relative overflow-hidden mb-4"
+                    style={{
+                      borderRadius: '2px',
+                      borderColor: status?.hex
+                    }}
+                  >
+                    {/* Progress fill */}
                     <div
-                      className={`h-full ${status?.color} transition-all duration-500`}
-                      style={{ width: `${node.nodeStrength}%` }}
+                      className="absolute inset-y-0 left-0 transition-all duration-500"
+                      style={{
+                        width: `${node.nodeStrength}%`,
+                        background: `linear-gradient(90deg, ${status?.hex} 0%, ${status?.glow} 100%)`,
+                        boxShadow: `inset 0 0 15px ${status?.glow}`
+                      }}
                     />
+
+                    {/* Scanning line */}
+                    <div
+                      className="absolute inset-y-0 w-0.5"
+                      style={{
+                        background: `linear-gradient(to right, transparent, ${status?.hex}, transparent)`,
+                        boxShadow: `0 0 8px ${status?.glow}`,
+                        left: `${node.nodeStrength}%`,
+                        animation: 'scan 2s ease-in-out infinite'
+                      }}
+                    />
+
+                    {/* Percentage overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span
+                        className="text-xs font-mono font-bold"
+                        style={{
+                          color: node.nodeStrength > 50 ? '#000' : status?.hex,
+                          textShadow: node.nodeStrength > 50 ? 'none' : `0 0 6px ${status?.glow}`
+                        }}
+                      >
+                        {Math.round(node.nodeStrength)}%
+                      </span>
+                    </div>
                   </div>
 
                   {/* Summary */}
                   {node.summary && (
-                    <div className="bg-lab-card/30 border-l-2 border-lab-mint/50 pl-3 py-2">
-                      <p className="text-sm font-mono text-lab-text-secondary leading-relaxed">
+                    <div
+                      className="bg-black/40 border-l-4 pl-4 py-3"
+                      style={{ borderColor: status?.hex }}
+                    >
+                      <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+                        CLINICAL SUMMARY:
+                      </div>
+                      <p className="text-sm font-mono text-lab-text-primary leading-relaxed">
                         {node.summary}
                       </p>
                     </div>
@@ -216,7 +327,7 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
                 {/* Close button */}
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-lab-alert/20 border border-lab-border hover:border-lab-alert text-lab-text-tertiary hover:text-lab-alert transition-all ml-4"
+                  className="p-2 hover:bg-lab-alert/20 border-2 border-lab-border hover:border-lab-alert text-lab-text-tertiary hover:text-lab-alert transition-all ml-4 flex-shrink-0"
                   style={{ borderRadius: '2px' }}
                   title="Close (ESC)"
                 >
@@ -367,13 +478,13 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
             </div>
 
             {/* Footer actions */}
-            <div className="border-t-2 border-lab-cyan/30 p-4 bg-lab-card/30 flex gap-3">
+            <div className="border-t-2 border-lab-cyan/30 p-4 bg-lab-card/50 flex gap-3">
               <button
                 onClick={() => {
                   navigate(`/nodes/${node.id}`);
                   onClose();
                 }}
-                className="flex-1 px-4 py-2 border-2 border-lab-border text-lab-text-primary hover:border-lab-cyan hover:text-lab-cyan font-mono uppercase transition-all flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 border-2 border-lab-border text-lab-text-primary hover:border-lab-cyan hover:text-lab-cyan font-mono uppercase font-bold text-sm transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
                 style={{ borderRadius: '2px' }}
               >
                 <ExternalLink className="w-4 h-4" />
@@ -384,21 +495,45 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
               {steps.length > 0 && (
                 <button
                   onClick={() => setFlowWalkerOpen(true)}
-                  className="flex-1 px-4 py-2 bg-orange-500 border-2 border-orange-500 text-white hover:bg-orange-600 font-mono uppercase font-bold transition-all flex items-center justify-center gap-2"
-                  style={{ borderRadius: '2px' }}
+                  className="flex-1 px-4 py-3 border-2 font-mono uppercase font-bold text-sm transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
+                  style={{
+                    borderRadius: '2px',
+                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(251, 191, 36, 0.2) 100%)',
+                    borderColor: '#f97316',
+                    color: '#f97316',
+                    boxShadow: '0 0 12px rgba(249, 115, 22, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(251, 191, 36, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 0 12px rgba(249, 115, 22, 0.3)';
+                  }}
                 >
                   <GitBranch className="w-4 h-4" />
-                  WALK THIS FLOW ({steps.length} STEPS)
+                  WALK FLOW ({steps.length})
                 </button>
               )}
 
               <button
                 onClick={startDrillSession}
-                className="flex-1 px-4 py-2 bg-lab-mint border-2 border-lab-mint text-black hover:bg-lab-mint/80 font-mono uppercase font-bold transition-all flex items-center justify-center gap-2"
-                style={{ borderRadius: '2px' }}
+                className="flex-1 px-4 py-3 border-2 font-mono uppercase font-bold text-sm transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
+                style={{
+                  borderRadius: '2px',
+                  background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 217, 255, 0.2) 100%)',
+                  borderColor: '#00ff88',
+                  color: '#00ff88',
+                  boxShadow: '0 0 16px rgba(0, 255, 136, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 24px rgba(0, 255, 136, 0.6), 0 0 48px rgba(0, 217, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 255, 136, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+                }}
               >
                 <Target className="w-4 h-4" />
-                DRILL THIS NODE
+                DRILL NODE
               </button>
             </div>
           </>
