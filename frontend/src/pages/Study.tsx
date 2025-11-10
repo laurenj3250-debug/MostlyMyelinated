@@ -217,46 +217,132 @@ export default function Study() {
   };
 
   return (
-    <div className="min-h-screen bg-lab-background">
-      {/* Header */}
-      <header className="bg-black border-b-2 border-lab-cyan/30">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-diagnostic-grid">
+      {/* HUD Header */}
+      <header
+        className="sticky top-0 z-50 bg-lab-card/80 backdrop-blur-xl border-b-2 border-lab-cyan/50"
+        style={{
+          boxShadow: 'inset 0 1px 0 rgba(0, 217, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2)'
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          {/* Top row: Quit, Title, Stats */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Quit button */}
             <button
               onClick={() => {
                 if (confirm('Quit session? Progress will be saved.')) {
                   navigate('/');
                 }
               }}
-              className="bg-lab-card/50 border border-lab-border text-lab-text-primary hover:border-lab-cyan hover:text-lab-cyan px-4 py-2 font-mono uppercase font-bold transition-all"
+              className="bg-lab-card border-2 border-lab-border text-lab-text-primary hover:border-lab-alert hover:text-lab-alert px-4 py-2 font-mono uppercase font-bold text-sm transition-all hover:scale-[1.02]"
               style={{ borderRadius: '2px' }}
             >
-              <span>←</span> QUIT
+              ← QUIT
             </button>
-            <div className="text-center flex-1">
-              <div className="text-sm font-mono text-lab-cyan uppercase mb-2 tracking-wider">
+
+            {/* Session title and progress */}
+            <div className="text-center flex-1 px-6">
+              <div
+                className="text-xs font-mono uppercase mb-2 tracking-[0.2em]"
+                style={{
+                  color: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff',
+                  textShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
+                    ? '0 0 10px rgba(255, 51, 102, 0.5)'
+                    : '0 0 10px rgba(0, 217, 255, 0.5)'
+                }}
+              >
                 {getSessionTitle()}
               </div>
-              <div className="text-3xl font-mono font-bold text-lab-cyan mb-1">
-                {currentIndex + 1} <span className="text-lab-cyan/50">/</span> {session.length}
-              </div>
-              <div className="text-sm font-mono text-lab-text-secondary">
-                ASSESSED: {sessionStats.reviewed}/{session.length} | SUCCESS RATE: {successRate}%
+
+              {/* Large progress indicator */}
+              <div className="flex items-baseline justify-center gap-2 mb-2">
+                <span
+                  className="text-5xl font-mono font-black"
+                  style={{
+                    color: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff',
+                    textShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
+                      ? '0 0 16px rgba(255, 51, 102, 0.6), 0 0 32px rgba(255, 51, 102, 0.3)'
+                      : '0 0 16px rgba(0, 217, 255, 0.6), 0 0 32px rgba(0, 217, 255, 0.3)'
+                  }}
+                >
+                  {currentIndex + 1}
+                </span>
+                <span className="text-2xl font-mono text-lab-text-tertiary">/</span>
+                <span className="text-2xl font-mono text-lab-text-secondary">{session.length}</span>
               </div>
             </div>
-            <div className="w-20"></div>
+
+            {/* Stats chip */}
+            <div
+              className="flex flex-col items-end gap-1 px-4 py-2 rounded border-2"
+              style={{
+                borderRadius: '2px',
+                borderColor: 'rgba(0, 217, 255, 0.3)',
+                background: 'rgba(0, 217, 255, 0.05)'
+              }}
+            >
+              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider">
+                ASSESSED
+              </div>
+              <div className="text-xl font-mono font-bold text-lab-cyan">
+                {sessionStats.reviewed}/{session.length}
+              </div>
+              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider">
+                SUCCESS: {successRate}%
+              </div>
+            </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="mt-6 h-2 bg-lab-card/30" style={{ borderRadius: '2px' }}>
+          {/* Enhanced Progress bar with scanning line */}
+          <div
+            className="h-4 bg-black border-2 relative overflow-hidden"
+            style={{
+              borderRadius: '2px',
+              borderColor: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff'
+            }}
+          >
+            {/* Progress fill */}
             <div
-              className={`h-full ${
-                mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
-                  ? 'bg-lab-alert'
-                  : 'bg-lab-cyan'
-              } ${progress > 50 ? 'shadow-glow-cyan' : ''} transition-all duration-500`}
-              style={{ width: `${progress}%`, borderRadius: '2px' }}
+              className="absolute inset-y-0 left-0 transition-all duration-500"
+              style={{
+                width: `${progress}%`,
+                background: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
+                  ? 'linear-gradient(90deg, #ff3366 0%, rgba(255, 51, 102, 0.6) 100%)'
+                  : 'linear-gradient(90deg, #00d9ff 0%, rgba(0, 217, 255, 0.6) 100%)',
+                boxShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
+                  ? 'inset 0 0 12px rgba(255, 51, 102, 0.5)'
+                  : 'inset 0 0 12px rgba(0, 217, 255, 0.5)'
+              }}
             />
+
+            {/* Scanning line at progress position */}
+            <div
+              className="absolute inset-y-0 w-0.5"
+              style={{
+                background: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
+                  ? 'linear-gradient(to right, transparent, #ff3366, transparent)'
+                  : 'linear-gradient(to right, transparent, #00d9ff, transparent)',
+                boxShadow: mode === 'weak-drill' || mode === 'disasters' || mode === 'drill'
+                  ? '0 0 8px rgba(255, 51, 102, 0.8)'
+                  : '0 0 8px rgba(0, 217, 255, 0.8)',
+                left: `${progress}%`,
+                animation: 'scan 2s ease-in-out infinite'
+              }}
+            />
+
+            {/* Percentage label */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span
+                className="text-xs font-mono font-bold"
+                style={{
+                  color: progress > 50 ? '#000' : (mode === 'weak-drill' || mode === 'disasters' || mode === 'drill' ? '#ff3366' : '#00d9ff'),
+                  textShadow: progress > 50 ? 'none' : '0 0 6px rgba(0, 217, 255, 0.8)'
+                }}
+              >
+                {progress.toFixed(0)}%
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -269,65 +355,131 @@ export default function Study() {
         <FlashCard card={currentCard} onReview={handleReview} />
       </div>
 
-      {/* Stats footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t-2 border-lab-cyan/30 py-4">
+      {/* Stats footer HUD */}
+      <div
+        className="fixed bottom-0 left-0 right-0 bg-lab-card/80 backdrop-blur-xl border-t-2 border-lab-cyan/50 py-4"
+        style={{
+          boxShadow: 'inset 0 -1px 0 rgba(0, 217, 255, 0.05), 0 -4px 12px rgba(0, 0, 0, 0.2)'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {/* FAILED */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">FAILED</div>
-              <div className="text-2xl font-mono font-bold text-lab-alert">{sessionStats.again}</div>
-              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+            <div
+              className="flex flex-col items-center p-3 bg-black/40 border-2 border-lab-alert/30 hover:border-lab-alert/60 transition-all"
+              style={{ borderRadius: '2px' }}
+            >
+              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+                FAILED
+              </div>
+              <div
+                className="text-3xl font-mono font-black"
+                style={{
+                  color: '#ff3366',
+                  textShadow: '0 0 12px rgba(255, 51, 102, 0.5)'
+                }}
+              >
+                {sessionStats.again}
+              </div>
+              <div className="w-full h-1.5 bg-black border border-lab-alert/30 mt-2 overflow-hidden" style={{ borderRadius: '1px' }}>
                 <div
                   className="h-full bg-lab-alert transition-all"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.again / sessionStats.reviewed * 100) : 0}%`,
-                    borderRadius: '2px'
+                    boxShadow: '0 0 8px rgba(255, 51, 102, 0.5)'
                   }}
                 />
               </div>
             </div>
 
             {/* PARTIAL */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">PARTIAL</div>
-              <div className="text-2xl font-mono font-bold text-orange-500">{sessionStats.hard}</div>
-              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+            <div
+              className="flex flex-col items-center p-3 bg-black/40 border-2 hover:border-orange-500/60 transition-all"
+              style={{
+                borderRadius: '2px',
+                borderColor: 'rgba(249, 115, 22, 0.3)'
+              }}
+            >
+              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+                PARTIAL
+              </div>
+              <div
+                className="text-3xl font-mono font-black"
+                style={{
+                  color: '#f97316',
+                  textShadow: '0 0 12px rgba(249, 115, 22, 0.5)'
+                }}
+              >
+                {sessionStats.hard}
+              </div>
+              <div
+                className="w-full h-1.5 bg-black border mt-2 overflow-hidden"
+                style={{
+                  borderRadius: '1px',
+                  borderColor: 'rgba(249, 115, 22, 0.3)'
+                }}
+              >
                 <div
                   className="h-full bg-orange-500 transition-all"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.hard / sessionStats.reviewed * 100) : 0}%`,
-                    borderRadius: '2px'
+                    boxShadow: '0 0 8px rgba(249, 115, 22, 0.5)'
                   }}
                 />
               </div>
             </div>
 
             {/* SUCCESS */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">SUCCESS</div>
-              <div className="text-2xl font-mono font-bold text-lab-cyan">{sessionStats.good}</div>
-              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+            <div
+              className="flex flex-col items-center p-3 bg-black/40 border-2 border-lab-cyan/30 hover:border-lab-cyan/60 transition-all"
+              style={{ borderRadius: '2px' }}
+            >
+              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+                SUCCESS
+              </div>
+              <div
+                className="text-3xl font-mono font-black"
+                style={{
+                  color: '#00d9ff',
+                  textShadow: '0 0 12px rgba(0, 217, 255, 0.6)'
+                }}
+              >
+                {sessionStats.good}
+              </div>
+              <div className="w-full h-1.5 bg-black border border-lab-cyan/30 mt-2 overflow-hidden" style={{ borderRadius: '1px' }}>
                 <div
                   className="h-full bg-lab-cyan transition-all"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.good / sessionStats.reviewed * 100) : 0}%`,
-                    borderRadius: '2px'
+                    boxShadow: '0 0 8px rgba(0, 217, 255, 0.6)'
                   }}
                 />
               </div>
             </div>
 
             {/* PERFECT */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs font-mono text-lab-text-tertiary uppercase mb-1">PERFECT</div>
-              <div className="text-2xl font-mono font-bold text-lab-mint">{sessionStats.easy}</div>
-              <div className="w-full h-1 bg-lab-card mt-2" style={{ borderRadius: '2px' }}>
+            <div
+              className="flex flex-col items-center p-3 bg-black/40 border-2 border-lab-mint/30 hover:border-lab-mint/60 transition-all"
+              style={{ borderRadius: '2px' }}
+            >
+              <div className="text-[10px] font-mono text-lab-text-tertiary uppercase tracking-wider mb-1">
+                PERFECT
+              </div>
+              <div
+                className="text-3xl font-mono font-black"
+                style={{
+                  color: '#00ff88',
+                  textShadow: '0 0 12px rgba(0, 255, 136, 0.6)'
+                }}
+              >
+                {sessionStats.easy}
+              </div>
+              <div className="w-full h-1.5 bg-black border border-lab-mint/30 mt-2 overflow-hidden" style={{ borderRadius: '1px' }}>
                 <div
                   className="h-full bg-lab-mint transition-all"
                   style={{
                     width: `${sessionStats.reviewed > 0 ? (sessionStats.easy / sessionStats.reviewed * 100) : 0}%`,
-                    borderRadius: '2px'
+                    boxShadow: '0 0 8px rgba(0, 255, 136, 0.6)'
                   }}
                 />
               </div>
