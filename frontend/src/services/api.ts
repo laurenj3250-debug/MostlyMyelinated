@@ -127,6 +127,48 @@ export const nodes = {
 
   deleteRelationship: (relationshipId: string) =>
     api.delete(`/nodes/relationships/${relationshipId}`),
+
+  // Steps (multi-step flows)
+  getSteps: (id: string) =>
+    api.get<{
+      steps: Array<{
+        id: string;
+        stepNumber: number;
+        title: string;
+        content: string;
+        decisionPoint: boolean;
+        nextSteps?: any;
+        imageUrl?: string;
+      }>;
+      count: number;
+    }>(`/nodes/${id}/steps`),
+
+  createStep: (
+    id: string,
+    data: {
+      stepNumber: number;
+      title: string;
+      content: string;
+      decisionPoint?: boolean;
+      nextSteps?: any;
+      imageUrl?: string;
+    }
+  ) => api.post(`/nodes/${id}/steps`, data),
+
+  updateStep: (
+    stepId: string,
+    data: {
+      stepNumber?: number;
+      title?: string;
+      content?: string;
+      decisionPoint?: boolean;
+      nextSteps?: any;
+      imageUrl?: string;
+    }
+  ) => api.patch(`/nodes/steps/${stepId}`, data),
+
+  deleteStep: (stepId: string) =>
+    api.delete(`/nodes/steps/${stepId}`),
 };
 
 // Facts API

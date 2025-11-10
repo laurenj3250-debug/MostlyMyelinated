@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ExternalLink, Target } from 'lucide-react';
+import { X, ExternalLink, Target, GitBranch } from 'lucide-react';
 import { nodes as nodesApi } from '../services/api';
 import type { Node, Fact } from '../types';
+import FlowWalker from './FlowWalker';
 
 interface NodeSheetProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
     outgoing: any[];
     incoming: any[];
   }>({ outgoing: [], incoming: [] });
+  const [steps, setSteps] = useState<any[]>([]);
+  const [flowWalkerOpen, setFlowWalkerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -45,9 +48,10 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
 
     setLoading(true);
     try {
-      const [nodeRes, relationshipsRes] = await Promise.all([
+      const [nodeRes, relationshipsRes, stepsRes] = await Promise.all([
         nodesApi.get(nodeId),
-        nodesApi.getRelationships(nodeId).catch(() => ({ data: { outgoing: [], incoming: [] } }))
+        nodesApi.getRelationships(nodeId).catch(() => ({ data: { outgoing: [], incoming: [] } })),
+        nodesApi.getSteps(nodeId).catch(() => ({ data: { steps: [], count: 0 } }))
       ]);
 
       const nodeData = nodeRes.data as any; // Node response includes facts
@@ -55,6 +59,7 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
       setNode(nodeData);
       setFacts(nodeData.facts || []);
       setRelationships(relationshipsRes.data);
+      setSteps(stepsRes.data.steps || []);
     } catch (error) {
       console.error('Error loading node sheet:', error);
     } finally {
@@ -374,6 +379,19 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
                 <ExternalLink className="w-4 h-4" />
                 FULL NODE VIEW
               </button>
+
+              {/* Show Walk This Flow if steps exist */}
+              {steps.length > 0 && (
+                <button
+                  onClick={() => setFlowWalkerOpen(true)}
+                  className="flex-1 px-4 py-2 bg-orange-500 border-2 border-orange-500 text-white hover:bg-orange-600 font-mono uppercase font-bold transition-all flex items-center justify-center gap-2"
+                  style={{ borderRadius: '2px' }}
+                >
+                  <GitBranch className="w-4 h-4" />
+                  WALK THIS FLOW ({steps.length} STEPS)
+                </button>
+              )}
+
               <button
                 onClick={startDrillSession}
                 className="flex-1 px-4 py-2 bg-lab-mint border-2 border-lab-mint text-black hover:bg-lab-mint/80 font-mono uppercase font-bold transition-all flex items-center justify-center gap-2"
@@ -386,6 +404,14 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
           </>
         )}
       </div>
+
+      {/* Flow Walker Modal */}
+      <FlowWalker
+        isOpen={flowWalkerOpen}
+        onClose={() => setFlowWalkerOpen(false)}
+        nodeName={node?.name || ''}
+        steps={steps}
+      />
     </div>
   );
 }

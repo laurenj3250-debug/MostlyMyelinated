@@ -512,4 +512,156 @@ router.delete('/relationships/:relationshipId', async (req: AuthRequest, res) =>
   }
 });
 
+// ===== NODE STEPS (Multi-step flows) =====
+
+// Get all steps for a node
+router.get('/:id/steps', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verify node ownership
+    const node = await prisma.node.findFirst({
+      where: { id, userId: req.user!.id },
+    });
+
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // Get all steps ordered by stepNumber
+    const steps = await prisma.nodeStep.findMany({
+      where: { nodeId: id },
+      orderBy: { stepNumber: 'asc' },
+    });
+
+    res.json({ steps, count: steps.length });
+  } catch (error) {
+    console.error('Get steps error:', error);
+    res.status(500).json({ error: 'Failed to get steps' });
+  }
+});
+
+// Create a new step for a node
+router.post('/:id/steps', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { stepNumber, title, content, decisionPoint, nextSteps, imageUrl } = req.body;
+
+    // Validate required fields
+    if (!stepNumber || !title || !content) {
+      return res.status(400).json({
+        error: 'stepNumber, title, and content are required'
+      });
+    }
+
+    // Verify node ownership
+    const node = await prisma.node.findFirst({
+      where: { id, userId: req.user!.id },
+    });
+
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // Create step
+    const step = await prisma.nodeStep.create({
+      data: {
+        nodeId: id,
+        stepNumber,
+        title,
+        content,
+        decisionPoint: decisionPoint || false,
+        nextSteps: nextSteps || null,
+        imageUrl: imageUrl || null,
+      },
+    });
+
+    res.json(step);
+  } catch (error) {
+    console.error('Create step error:', error);
+    res.status(500).json({ error: 'Failed to create step' });
+  }
+});
+
+// Update a step
+router.patch('/steps/:stepId', async (req: AuthRequest, res) => {
+  try {
+    const { stepId } = req.params;
+    const { stepNumber, title, content, decisionPoint, nextSteps, imageUrl } = req.body;
+
+    // Get step to verify ownership
+    const step = await prisma.nodeStep.findUnique({
+      where: { id: stepId },
+      include: {
+        node: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!step) {
+      return res.status(404).json({ error: 'Step not found' });
+    }
+
+    // Verify user owns the node
+    if (step.node.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    // Update step
+    const updatedStep = await prisma.nodeStep.update({
+      where: { id: stepId },
+      data: {
+        ...(stepNumber !== undefined && { stepNumber }),
+        ...(title && { title }),
+        ...(content && { content }),
+        ...(decisionPoint !== undefined && { decisionPoint }),
+        ...(nextSteps !== undefined && { nextSteps }),
+        ...(imageUrl !== undefined && { imageUrl }),
+      },
+    });
+
+    res.json(updatedStep);
+  } catch (error) {
+    console.error('Update step error:', error);
+    res.status(500).json({ error: 'Failed to update step' });
+  }
+});
+
+// Delete a step
+router.delete('/steps/:stepId', async (req: AuthRequest, res) => {
+  try {
+    const { stepId } = req.params;
+
+    // Get step to verify ownership
+    const step = await prisma.nodeStep.findUnique({
+      where: { id: stepId },
+      include: {
+        node: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!step) {
+      return res.status(404).json({ error: 'Step not found' });
+    }
+
+    // Verify user owns the node
+    if (step.node.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    // Delete step
+    await prisma.nodeStep.delete({
+      where: { id: stepId },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete step error:', error);
+    res.status(500).json({ error: 'Failed to delete step' });
+  }
+});
+
 export default router;

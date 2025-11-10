@@ -65,6 +65,7 @@ model Node {
   facts       Fact[]
   images      NodeImage[]
   cards       Card[]
+  steps       NodeStep[]
 
   // Relationships where this node is the source
   sourceRelationships NodeRelationship[] @relation("SourceNode")
@@ -94,6 +95,29 @@ model NodeRelationship {
   @@index([sourceNodeId])
   @@index([targetNodeId])
   @@index([relationshipType])
+}
+
+model NodeStep {
+  id        String   @id @default(cuid())
+  nodeId    String
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  stepNumber   Int      // Order in the sequence (1, 2, 3...)
+  title        String   // Step title (e.g., "Check pupillary light reflex")
+  content      String   // Detailed instructions/description
+
+  // Decision/branching support
+  decisionPoint Boolean @default(false) // Is this a decision point?
+  nextSteps     Json?   // Array of {condition: string, nextStepNumber: int}
+
+  // Optional media
+  imageUrl     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nodeId, stepNumber])
+  @@unique([nodeId, stepNumber])
 }
 
 model Fact {
