@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Node } from '../types';
+import HeatMapBar from './HeatMapBar';
 
 interface SkillTreeProps {
   nodes: Node[];
+  onNodeClick?: (nodeId: string) => void;
 }
 
 interface TreeNode {
@@ -12,9 +14,17 @@ interface TreeNode {
   depth: number;
 }
 
-export default function SkillTree({ nodes }: SkillTreeProps) {
+export default function SkillTree({ nodes, onNodeClick }: SkillTreeProps) {
   const navigate = useNavigate();
   const [treeData, setTreeData] = useState<TreeNode[]>([]);
+
+  const handleNodeClick = (nodeId: string) => {
+    if (onNodeClick) {
+      onNodeClick(nodeId);
+    } else {
+      navigate(`/nodes/${nodeId}`);
+    }
+  };
 
   useEffect(() => {
     buildTree();
@@ -125,7 +135,7 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
 
           {/* Node */}
           <div
-            onClick={() => navigate(`/nodes/${node.id}`)}
+            onClick={() => handleNodeClick(node.id)}
             className={`flex-1 p-4 border-2 cursor-pointer
                        ${style.bg} ${style.border} ${style.text}
                        hover:border-lab-cyan hover:shadow-glow-sm hover:translate-x-1
@@ -153,11 +163,13 @@ export default function SkillTree({ nodes }: SkillTreeProps) {
               )}
             </div>
 
-            {/* Progress bar - Mini heat map style */}
-            <div className="mt-3 h-1.5 bg-black border border-lab-cyan/20 overflow-hidden relative">
-              <div
-                className="h-full heatmap-good transition-all duration-500"
-                style={{ width: `${node.nodeStrength}%` }}
+            {/* Heat Map Progress Bar */}
+            <div className="mt-3">
+              <HeatMapBar
+                strength={node.nodeStrength}
+                showPercentage={false}
+                size="small"
+                animate={true}
               />
             </div>
           </div>

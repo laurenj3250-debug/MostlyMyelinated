@@ -85,6 +85,48 @@ export const nodes = {
     }),
 
   getAll: () => api.get<Node[]>('/nodes'),
+
+  // Relationships
+  getRelationships: (id: string) =>
+    api.get<{
+      outgoing: Array<{
+        id: string;
+        relationshipType: string;
+        notes?: string;
+        strength: number;
+        targetNode: {
+          id: string;
+          name: string;
+          nodeStrength: number;
+          module?: string;
+        };
+      }>;
+      incoming: Array<{
+        id: string;
+        relationshipType: string;
+        notes?: string;
+        strength: number;
+        sourceNode: {
+          id: string;
+          name: string;
+          nodeStrength: number;
+          module?: string;
+        };
+      }>;
+    }>(`/nodes/${id}/relationships`),
+
+  createRelationship: (
+    id: string,
+    data: {
+      targetNodeId: string;
+      relationshipType: string;
+      notes?: string;
+      strength?: number;
+    }
+  ) => api.post(`/nodes/${id}/relationships`, data),
+
+  deleteRelationship: (relationshipId: string) =>
+    api.delete(`/nodes/relationships/${relationshipId}`),
 };
 
 // Facts API

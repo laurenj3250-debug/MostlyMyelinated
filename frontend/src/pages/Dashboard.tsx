@@ -260,7 +260,7 @@ export default function Dashboard() {
               </p>
             </div>
           ) : viewMode === 'tree' ? (
-            <SkillTree nodes={allNodes} />
+            <SkillTree nodes={allNodes} onNodeClick={openNodeSheet} />
           ) : (
             <>
               {/* Module filter */}

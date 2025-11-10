@@ -339,4 +339,177 @@ router.get('/critical', async (req: AuthRequest, res) => {
   }
 });
 
+// ===== NODE RELATIONSHIPS =====
+
+// Get all relationships for a node (both source and target)
+router.get('/:id/relationships', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verify node ownership
+    const node = await prisma.node.findFirst({
+      where: { id, userId: req.user!.id },
+    });
+
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // Get relationships where this node is the source or target
+    const sourceRelationships = await prisma.nodeRelationship.findMany({
+      where: { sourceNodeId: id },
+      include: {
+        targetNode: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+            module: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const targetRelationships = await prisma.nodeRelationship.findMany({
+      where: { targetNodeId: id },
+      include: {
+        sourceNode: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+            module: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({
+      outgoing: sourceRelationships,
+      incoming: targetRelationships,
+    });
+  } catch (error) {
+    console.error('Get relationships error:', error);
+    res.status(500).json({ error: 'Failed to get relationships' });
+  }
+});
+
+// Create a relationship from this node to another
+router.post('/:id/relationships', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { targetNodeId, relationshipType, notes, strength } = req.body;
+
+    // Validate required fields
+    if (!targetNodeId || !relationshipType) {
+      return res.status(400).json({
+        error: 'targetNodeId and relationshipType are required'
+      });
+    }
+
+    // Validate relationship type
+    const validTypes = ['prerequisite', 'compare', 'part_of', 'related', 'pathway'];
+    if (!validTypes.includes(relationshipType)) {
+      return res.status(400).json({
+        error: `relationshipType must be one of: ${validTypes.join(', ')}`
+      });
+    }
+
+    // Verify source node ownership
+    const sourceNode = await prisma.node.findFirst({
+      where: { id, userId: req.user!.id },
+    });
+
+    if (!sourceNode) {
+      return res.status(404).json({ error: 'Source node not found' });
+    }
+
+    // Verify target node exists and belongs to user
+    const targetNode = await prisma.node.findFirst({
+      where: { id: targetNodeId, userId: req.user!.id },
+    });
+
+    if (!targetNode) {
+      return res.status(404).json({ error: 'Target node not found' });
+    }
+
+    // Prevent self-relationships
+    if (id === targetNodeId) {
+      return res.status(400).json({ error: 'Cannot create relationship to self' });
+    }
+
+    // Create relationship
+    const relationship = await prisma.nodeRelationship.create({
+      data: {
+        sourceNodeId: id,
+        targetNodeId,
+        relationshipType,
+        notes: notes || null,
+        strength: strength || 5,
+      },
+      include: {
+        sourceNode: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+            module: true,
+          },
+        },
+        targetNode: {
+          select: {
+            id: true,
+            name: true,
+            nodeStrength: true,
+            module: true,
+          },
+        },
+      },
+    });
+
+    res.json(relationship);
+  } catch (error) {
+    console.error('Create relationship error:', error);
+    res.status(500).json({ error: 'Failed to create relationship' });
+  }
+});
+
+// Delete a relationship
+router.delete('/relationships/:relationshipId', async (req: AuthRequest, res) => {
+  try {
+    const { relationshipId } = req.params;
+
+    // Get relationship to verify ownership
+    const relationship = await prisma.nodeRelationship.findUnique({
+      where: { id: relationshipId },
+      include: {
+        sourceNode: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!relationship) {
+      return res.status(404).json({ error: 'Relationship not found' });
+    }
+
+    // Verify user owns the source node
+    if (relationship.sourceNode.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    // Delete relationship
+    await prisma.nodeRelationship.delete({
+      where: { id: relationshipId },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete relationship error:', error);
+    res.status(500).json({ error: 'Failed to delete relationship' });
+  }
+});
+
 export default router;

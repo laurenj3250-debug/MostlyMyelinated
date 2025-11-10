@@ -14,6 +14,10 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
   const navigate = useNavigate();
   const [node, setNode] = useState<Node | null>(null);
   const [facts, setFacts] = useState<Fact[]>([]);
+  const [relationships, setRelationships] = useState<{
+    outgoing: any[];
+    incoming: any[];
+  }>({ outgoing: [], incoming: [] });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -41,11 +45,16 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
 
     setLoading(true);
     try {
-      const nodeRes = await nodesApi.get(nodeId);
+      const [nodeRes, relationshipsRes] = await Promise.all([
+        nodesApi.get(nodeId),
+        nodesApi.getRelationships(nodeId).catch(() => ({ data: { outgoing: [], incoming: [] } }))
+      ]);
+
       const nodeData = nodeRes.data as any; // Node response includes facts
 
       setNode(nodeData);
       setFacts(nodeData.facts || []);
+      setRelationships(relationshipsRes.data);
     } catch (error) {
       console.error('Error loading node sheet:', error);
     } finally {
@@ -255,6 +264,97 @@ export default function NodeSheet({ isOpen, onClose, nodeId }: NodeSheetProps) {
                       <span className="text-lg font-mono font-bold text-lab-cyan">
                         {node._count.cards}
                       </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Relationships Section */}
+              {(relationships.outgoing.length > 0 || relationships.incoming.length > 0) && (
+                <div className="space-y-4 mt-6">
+                  <h3 className="text-sm font-mono font-bold uppercase text-lab-cyan border-b border-lab-border/30 pb-2">
+                    NEURAL CONNECTIONS
+                  </h3>
+
+                  {/* Outgoing Relationships */}
+                  {relationships.outgoing.length > 0 && (
+                    <div className="bg-lab-card/30 border-l-2 border-lab-mint/50 p-4">
+                      <h4 className="text-xs font-mono font-bold uppercase text-lab-mint mb-3">
+                        CONNECTIONS FROM THIS NODE
+                      </h4>
+                      <div className="space-y-2">
+                        {relationships.outgoing.map((rel) => (
+                          <div
+                            key={rel.id}
+                            className="text-sm font-mono flex items-start gap-2 hover:bg-lab-card/50 p-2 cursor-pointer transition-all"
+                            onClick={() => {
+                              navigate(`/nodes/${rel.targetNode.id}`);
+                              onClose();
+                            }}
+                          >
+                            <span className="text-lab-mint flex-shrink-0 mt-1">→</span>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs uppercase px-2 py-0.5 bg-lab-mint/20 text-lab-mint border border-lab-mint/30">
+                                  {rel.relationshipType}
+                                </span>
+                                <span className="text-lab-text-primary font-bold">
+                                  {rel.targetNode.name}
+                                </span>
+                              </div>
+                              {rel.notes && (
+                                <p className="text-xs text-lab-text-tertiary ml-0 mt-1">
+                                  {rel.notes}
+                                </p>
+                              )}
+                              <div className="text-xs text-lab-text-tertiary mt-1">
+                                Strength: {Math.round(rel.targetNode.nodeStrength)}%
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Incoming Relationships */}
+                  {relationships.incoming.length > 0 && (
+                    <div className="bg-lab-card/30 border-l-2 border-lab-cyan/50 p-4">
+                      <h4 className="text-xs font-mono font-bold uppercase text-lab-cyan mb-3">
+                        CONNECTIONS TO THIS NODE
+                      </h4>
+                      <div className="space-y-2">
+                        {relationships.incoming.map((rel) => (
+                          <div
+                            key={rel.id}
+                            className="text-sm font-mono flex items-start gap-2 hover:bg-lab-card/50 p-2 cursor-pointer transition-all"
+                            onClick={() => {
+                              navigate(`/nodes/${rel.sourceNode.id}`);
+                              onClose();
+                            }}
+                          >
+                            <span className="text-lab-cyan flex-shrink-0 mt-1">←</span>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs uppercase px-2 py-0.5 bg-lab-cyan/20 text-lab-cyan border border-lab-cyan/30">
+                                  {rel.relationshipType}
+                                </span>
+                                <span className="text-lab-text-primary font-bold">
+                                  {rel.sourceNode.name}
+                                </span>
+                              </div>
+                              {rel.notes && (
+                                <p className="text-xs text-lab-text-tertiary ml-0 mt-1">
+                                  {rel.notes}
+                                </p>
+                              )}
+                              <div className="text-xs text-lab-text-tertiary mt-1">
+                                Strength: {Math.round(rel.sourceNode.nodeStrength)}%
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

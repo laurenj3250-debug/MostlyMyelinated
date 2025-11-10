@@ -66,9 +66,34 @@ model Node {
   images      NodeImage[]
   cards       Card[]
 
+  // Relationships where this node is the source
+  sourceRelationships NodeRelationship[] @relation("SourceNode")
+  // Relationships where this node is the target
+  targetRelationships NodeRelationship[] @relation("TargetNode")
+
   @@index([userId, nodeStrength])
   @@index([userId, parentId])
   @@index([userId, module])
+}
+
+model NodeRelationship {
+  id        String   @id @default(cuid())
+
+  sourceNodeId String
+  sourceNode   Node   @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+
+  targetNodeId String
+  targetNode   Node   @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  relationshipType String // 'prerequisite' | 'compare' | 'part_of' | 'related' | 'pathway'
+  notes            String? // Optional explanation
+  strength         Int     @default(5) // 0-10 importance (for future use)
+
+  createdAt DateTime @default(now())
+
+  @@index([sourceNodeId])
+  @@index([targetNodeId])
+  @@index([relationshipType])
 }
 
 model Fact {
