@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import NeuroStatusHero from '../components/NeuroStatusHero';
 import CriticalNodesPanel from '../components/CriticalNodesPanel';
 import AchievementSummary from '../components/AchievementSummary';
-import NodeCard from '../components/NodeCard';
+import NodeStatusCard from '../components/NodeStatusCard';
 import StreakFlame from '../components/StreakFlame';
 import XPBar from '../components/XPBar';
 import SkillTree from '../components/SkillTree';
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [userLevel, setUserLevel] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
+  const [moduleFilter, setModuleFilter] = useState<string>('All');
 
   useEffect(() => {
     loadDashboardData();
@@ -185,11 +186,11 @@ export default function Dashboard() {
           />
         )}
 
-        {/* All Nodes Section */}
+        {/* Neural Pathway Status Section */}
         <div className="bg-black border-2 border-lab-border p-6" style={{ borderRadius: '2px' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-mono uppercase text-lab-cyan">
-              ALL NODES ({allNodes.length})
+              NEURAL PATHWAY STATUS ({allNodes.length})
             </h3>
             <div className="flex items-center gap-2">
               <button
@@ -201,7 +202,7 @@ export default function Dashboard() {
                 }`}
                 style={{ borderRadius: '2px' }}
               >
-                LIST
+                STATUS
               </button>
               <button
                 onClick={() => setViewMode('tree')}
@@ -227,28 +228,59 @@ export default function Dashboard() {
           {allNodes.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">⚠️</div>
-              <p className="text-lg font-mono text-lab-text-primary mb-2">
-                No nodes created yet.
+              <p className="text-lg font-mono text-lab-text-primary mb-2 uppercase">
+                NEURAL PATHWAYS UNINITIALIZED
               </p>
               <p className="text-sm font-mono text-lab-text-tertiary mb-6">
-                Create your first node to begin mapping neural pathways.
+                Create your first node to begin mapping concepts
               </p>
               <button
                 onClick={() => navigate('/nodes/new')}
                 className="px-6 py-3 bg-lab-cyan border-2 border-lab-cyan text-black font-mono uppercase font-bold hover:bg-lab-cyan/80 transition-all"
                 style={{ borderRadius: '2px' }}
               >
-                + CREATE FIRST NODE
+                + CREATE NODE
               </button>
+              <p className="text-xs font-mono text-lab-text-tertiary mt-4">
+                Tip: Start with a concept you're currently studying (e.g., "C6-T2 lesions")
+              </p>
             </div>
           ) : viewMode === 'tree' ? (
             <SkillTree nodes={allNodes} />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {allNodes.map(node => (
-                <NodeCard key={node.id} node={node} onClick={() => navigate(`/nodes/${node.id}`)} />
-              ))}
-            </div>
+            <>
+              {/* Module filter */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {['All', 'Spinal', 'Brainstem', 'Cerebrum', 'CSF', 'Clinical', 'Other'].map(module => (
+                  <button
+                    key={module}
+                    onClick={() => setModuleFilter(module)}
+                    className={`px-3 py-1 text-xs font-mono border transition-all ${
+                      moduleFilter === module
+                        ? 'border-lab-cyan text-lab-cyan bg-lab-cyan/10'
+                        : 'border-lab-border text-lab-text-tertiary hover:border-lab-cyan/50'
+                    }`}
+                    style={{ borderRadius: '2px' }}
+                  >
+                    {module}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status cards grid - sorted by weakness */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allNodes
+                  .filter(node => moduleFilter === 'All' || node.module === moduleFilter || (!node.module && moduleFilter === 'Other'))
+                  .sort((a, b) => a.nodeStrength - b.nodeStrength) // Weakest first
+                  .map(node => (
+                    <NodeStatusCard
+                      key={node.id}
+                      node={node}
+                      onClick={() => navigate(`/nodes/${node.id}`)}
+                    />
+                  ))}
+              </div>
+            </>
           )}
         </div>
 

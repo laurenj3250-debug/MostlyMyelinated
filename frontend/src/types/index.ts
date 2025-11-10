@@ -17,6 +17,8 @@ export interface Node {
   userId: string;
   name: string;
   summary?: string;
+  module?: string; // 'Spinal' | 'Brainstem' | 'Cerebrum' | 'CSF' | 'Clinical' | 'Other'
+  mainImageUrl?: string;
   parentId?: string;
   tags: string[];
   nodeStrength: number;
@@ -29,6 +31,7 @@ export interface Node {
     emoji: string;
     strength: number;
   };
+  dueCount?: number;
   _count?: {
     cards: number;
     facts: number;
