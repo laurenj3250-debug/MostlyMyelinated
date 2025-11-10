@@ -182,6 +182,11 @@ export const nodes = {
       tags: string[];
       forceCreate: boolean;
     }>;
+    merges?: Array<{
+      nodeId: string;
+      summary?: string;
+      tags?: string[];
+    }>;
     autoCreateParents: boolean;
   }) => api.post(`/nodes/bulk-create`, data),
 };

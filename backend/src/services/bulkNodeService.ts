@@ -183,26 +183,35 @@ export interface BulkCreateInput {
   forceCreate: boolean; // If true, create even if duplicate
 }
 
+export interface BulkMergeInput {
+  nodeId: string;
+  summary?: string;
+  tags?: string[];
+}
+
 export interface BulkCreateResult {
   created: number;
   skipped: number;
   parentsCreated: number;
+  merged: number;
   nodeIds: string[];
 }
 
 /**
  * Execute bulk node creation with transaction
- * Creates parents first, then nodes
+ * Creates parents first, then nodes, then merges
  */
 export async function executeBulkCreate(
   userId: string,
   nodes: BulkCreateInput[],
+  merges: BulkMergeInput[],
   autoCreateParents: boolean
 ): Promise<BulkCreateResult> {
   return await prisma.$transaction(async (tx) => {
     let parentsCreated = 0;
     let created = 0;
     let skipped = 0;
+    let merged = 0;
     const nodeIds: string[] = [];
 
     // Step 1: Fetch existing nodes to check for exact duplicates
@@ -284,10 +293,23 @@ export async function executeBulkCreate(
       created++;
     }
 
+    // Step 4: Merge existing nodes
+    for (const mergeData of merges || []) {
+      await tx.node.update({
+        where: { id: mergeData.nodeId, userId }, // Security: ensure userId matches
+        data: {
+          summary: mergeData.summary || undefined,
+          tags: mergeData.tags || undefined,
+        },
+      });
+      merged++;
+    }
+
     return {
       created,
       skipped,
       parentsCreated,
+      merged,
       nodeIds,
     };
   });

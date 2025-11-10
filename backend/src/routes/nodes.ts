@@ -8,7 +8,7 @@ import {
   getNodesWithStrength,
 } from '../services/nodeStrength';
 import { parseBulkNodes } from '../services/bulkNodeParser';
-import { previewBulkImport, executeBulkCreate, BulkCreateInput } from '../services/bulkNodeService';
+import { previewBulkImport, executeBulkCreate, BulkCreateInput, BulkMergeInput } from '../services/bulkNodeService';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -716,7 +716,7 @@ router.post('/bulk-preview', async (req: AuthRequest, res) => {
  */
 router.post('/bulk-create', async (req: AuthRequest, res) => {
   try {
-    const { nodes, autoCreateParents = true } = req.body;
+    const { nodes, merges = [], autoCreateParents = true } = req.body;
 
     if (!Array.isArray(nodes) || nodes.length === 0) {
       return res.status(400).json({ error: 'nodes array is required' });
@@ -738,14 +738,31 @@ router.post('/bulk-create', async (req: AuthRequest, res) => {
       });
     }
 
-    if (validNodes.length === 0) {
-      return res.status(400).json({ error: 'No valid nodes to create' });
+    // Validate merge structure
+    const validMerges: BulkMergeInput[] = [];
+    if (Array.isArray(merges)) {
+      for (const merge of merges) {
+        if (!merge.nodeId) {
+          continue; // Skip invalid merges
+        }
+
+        validMerges.push({
+          nodeId: String(merge.nodeId).trim(),
+          summary: merge.summary ? String(merge.summary).trim() : undefined,
+          tags: Array.isArray(merge.tags) ? merge.tags : undefined,
+        });
+      }
+    }
+
+    if (validNodes.length === 0 && validMerges.length === 0) {
+      return res.status(400).json({ error: 'No valid nodes to create or merge' });
     }
 
     // Execute bulk create with transaction
     const result = await executeBulkCreate(
       req.user!.id,
       validNodes,
+      validMerges,
       autoCreateParents
     );
 

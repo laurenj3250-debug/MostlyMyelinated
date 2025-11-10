@@ -21,6 +21,7 @@ interface NodePreview {
   parentId?: string;
   parentMismatch?: boolean;
   willCreate: boolean; // User's decision (can override)
+  willMerge?: boolean; // If true, merge with existing node instead of creating
 }
 
 interface ParentPreview {
@@ -67,6 +68,7 @@ export default function BulkImport() {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [filter, setFilter] = useState<MatchStatus | 'ALL' | 'MISMATCH'>('ALL');
 
   const copyPrompt = () => {
     navigator.clipboard.writeText(CHATGPT_PROMPT);
@@ -115,9 +117,10 @@ export default function BulkImport() {
 
   const handleCreate = async () => {
     const nodesToCreate = previews.filter(p => p.willCreate);
+    const nodesToMerge = previews.filter(p => p.willMerge && p.matchedNode);
 
-    if (nodesToCreate.length === 0) {
-      addToast({ message: 'No nodes selected to create', type: 'error' });
+    if (nodesToCreate.length === 0 && nodesToMerge.length === 0) {
+      addToast({ message: 'No nodes selected to create or merge', type: 'error' });
       return;
     }
 
@@ -138,6 +141,11 @@ export default function BulkImport() {
           tags: n.tags,
           forceCreate: n.matchStatus === 'EXACT' ? false : true,
         })),
+        merges: nodesToMerge.map(m => ({
+          nodeId: m.matchedNode!.id,
+          summary: m.summary,
+          tags: m.tags,
+        })),
         autoCreateParents,
       });
 
@@ -145,8 +153,13 @@ export default function BulkImport() {
       setProgress(100);
 
       const result = response.data;
+      const messages = [];
+      if (result.created > 0) messages.push(`${result.created} nodes created`);
+      if (result.merged > 0) messages.push(`${result.merged} nodes merged`);
+      if (result.parentsCreated > 0) messages.push(`${result.parentsCreated} parents created`);
+
       addToast({
-        message: `Created ${result.created} nodes${result.parentsCreated > 0 ? ` and ${result.parentsCreated} parents` : ''}!`,
+        message: messages.join(', ') + '!',
         type: 'success',
       });
 
@@ -165,13 +178,49 @@ export default function BulkImport() {
     }
   };
 
-  const toggleNodeCreate = (index: number) => {
-    setPreviews(prev => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], willCreate: !updated[index].willCreate };
-      return updated;
-    });
+  const toggleNodeCreate = (nodeName: string) => {
+    setPreviews(prev => prev.map(p =>
+      p.node === nodeName ? { ...p, willCreate: !p.willCreate } : p
+    ));
   };
+
+  // Batch action functions
+  const selectAllStrong = () => {
+    setPreviews(prev => prev.map(p =>
+      p.matchStatus === 'STRONG' ? { ...p, willCreate: true } : p
+    ));
+  };
+
+  const selectAllNew = () => {
+    setPreviews(prev => prev.map(p =>
+      p.matchStatus === 'NONE' ? { ...p, willCreate: true } : p
+    ));
+  };
+
+  const deselectAll = () => {
+    setPreviews(prev => prev.map(p => ({ ...p, willCreate: false })));
+  };
+
+  const toggleNodeMerge = (nodeName: string) => {
+    setPreviews(prev => prev.map(p => {
+      if (p.node === nodeName && (p.matchStatus === 'STRONG' || p.matchStatus === 'WEAK')) {
+        const willMerge = !p.willMerge;
+        return {
+          ...p,
+          willMerge,
+          willCreate: willMerge ? false : true, // If merging, don't create; otherwise create
+        };
+      }
+      return p;
+    }));
+  };
+
+  // Filter logic
+  const filteredPreviews = previews.filter(p => {
+    if (filter === 'ALL') return true;
+    if (filter === 'MISMATCH') return p.parentMismatch;
+    return p.matchStatus === filter;
+  });
 
   const getMatchChip = (preview: NodePreview) => {
     if (preview.matchStatus === 'EXACT') {
@@ -479,6 +528,98 @@ export default function BulkImport() {
               </div>
             </div>
 
+            {/* Filter Chips */}
+            <div className="mb-4 flex gap-2 flex-wrap">
+              {(['ALL', 'EXACT', 'STRONG', 'WEAK', 'NONE', 'MISMATCH'] as const).map(f => {
+                const count = f === 'ALL'
+                  ? previews.length
+                  : f === 'MISMATCH'
+                  ? previews.filter(p => p.parentMismatch).length
+                  : previews.filter(p => p.matchStatus === f).length;
+
+                return (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f as any)}
+                    className="px-3 py-2 rounded-pill text-xs font-bold uppercase transition-all"
+                    style={{
+                      background: filter === f
+                        ? 'rgba(0, 234, 255, 0.2)'
+                        : 'rgba(0, 0, 0, 0.3)',
+                      border: `1px solid ${filter === f ? '#00eaff' : 'rgba(0, 234, 255, 0.2)'}`,
+                      color: filter === f ? '#00eaff' : '#6b7280',
+                      boxShadow: filter === f ? '0 0 12px rgba(0, 234, 255, 0.3)' : 'none',
+                    }}
+                  >
+                    {f} {f !== 'ALL' && `(${count})`}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Batch Actions */}
+            <div className="mb-4 flex gap-3 flex-wrap">
+              <button
+                onClick={selectAllStrong}
+                className="px-4 py-2 rounded-pill border-medium font-display font-bold text-xs uppercase tracking-wider transition-all"
+                style={{
+                  background: 'rgba(255, 170, 0, 0.12)',
+                  borderColor: '#ffaa00',
+                  color: '#ffaa00',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 0 16px rgba(255, 170, 0, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                ✓ SELECT ALL STRONG ({previews.filter(p => p.matchStatus === 'STRONG').length})
+              </button>
+
+              <button
+                onClick={selectAllNew}
+                className="px-4 py-2 rounded-pill border-medium font-display font-bold text-xs uppercase tracking-wider transition-all"
+                style={{
+                  background: 'rgba(0, 255, 136, 0.12)',
+                  borderColor: '#00ff88',
+                  color: '#00ff88',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 255, 136, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                ✓ SELECT ALL NEW ({previews.filter(p => p.matchStatus === 'NONE').length})
+              </button>
+
+              <button
+                onClick={deselectAll}
+                className="px-4 py-2 rounded-pill border-medium font-display font-bold text-xs uppercase tracking-wider transition-all"
+                style={{
+                  background: 'rgba(255, 51, 102, 0.12)',
+                  borderColor: '#ff3366',
+                  color: '#ff5577',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 0 16px rgba(255, 51, 102, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                ✕ DESELECT ALL
+              </button>
+            </div>
+
             {/* Preview Table */}
             <div className="overflow-x-auto mb-6 rounded-xl" style={{
               background: 'rgba(0, 0, 0, 0.4)',
@@ -488,6 +629,7 @@ export default function BulkImport() {
                 <thead>
                   <tr style={{ borderBottom: '2px solid rgba(0, 234, 255, 0.3)' }}>
                     <th className="px-4 py-3 text-left text-xs font-mono font-bold text-neon-cyan uppercase">Create?</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono font-bold text-neon-cyan uppercase">Merge?</th>
                     <th className="px-4 py-3 text-left text-xs font-mono font-bold text-neon-cyan uppercase">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-mono font-bold text-neon-cyan uppercase">Parent</th>
                     <th className="px-4 py-3 text-left text-xs font-mono font-bold text-neon-cyan uppercase">Node</th>
@@ -496,7 +638,7 @@ export default function BulkImport() {
                   </tr>
                 </thead>
                 <tbody>
-                  {previews.map((preview, idx) => (
+                  {filteredPreviews.map((preview, idx) => (
                     <tr
                       key={idx}
                       style={{
@@ -509,10 +651,24 @@ export default function BulkImport() {
                         <input
                           type="checkbox"
                           checked={preview.willCreate}
-                          onChange={() => toggleNodeCreate(idx)}
+                          onChange={() => toggleNodeCreate(preview.node)}
                           className="w-5 h-5"
                           style={{ accentColor: '#00eaff' }}
                         />
+                      </td>
+                      <td className="px-4 py-3">
+                        {(preview.matchStatus === 'STRONG' || preview.matchStatus === 'WEAK') && preview.matchedNode ? (
+                          <input
+                            type="checkbox"
+                            checked={preview.willMerge || false}
+                            onChange={() => toggleNodeMerge(preview.node)}
+                            className="w-5 h-5"
+                            style={{ accentColor: '#ffaa00' }}
+                            title={`Merge with existing "${preview.matchedNode.name}"`}
+                          />
+                        ) : (
+                          <span className="text-lab-text-dim text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {getMatchChip(preview)}
