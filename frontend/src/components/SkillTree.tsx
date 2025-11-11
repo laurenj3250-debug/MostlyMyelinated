@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Node } from '../types';
 import HeatMapBar from './HeatMapBar';
+import DraggableNodeCard from './DraggableNodeCard';
+import EditableNodeName from './EditableNodeName';
+import { useToast } from './ToastContainer';
 
 interface SkillTreeProps {
   nodes: Node[];
   onNodeClick?: (nodeId: string) => void;
+  onNodesChange?: () => void; // Callback to refresh nodes after changes
 }
 
 interface TreeNode {
@@ -14,15 +19,43 @@ interface TreeNode {
   depth: number;
 }
 
-export default function SkillTree({ nodes, onNodeClick }: SkillTreeProps) {
+export default function SkillTree({ nodes, onNodeClick, onNodesChange }: SkillTreeProps) {
   const navigate = useNavigate();
   const [treeData, setTreeData] = useState<TreeNode[]>([]);
+  const { addToast } = useToast();
 
   const handleNodeClick = (nodeId: string) => {
     if (onNodeClick) {
       onNodeClick(nodeId);
     } else {
       navigate(`/nodes/${nodeId}`);
+    }
+  };
+
+  // Handle drag-and-drop
+  const handleNodeDrop = async (draggedNodeId: string, targetNodeId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `/api/nodes/${draggedNodeId}/parent`,
+        { parentId: targetNodeId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Refresh nodes
+      if (onNodesChange) {
+        onNodesChange();
+      }
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to move node');
+    }
+  };
+
+  // Handle name save
+  const handleNameSave = (nodeId: string, newName: string) => {
+    // Optimistically update local state
+    if (onNodesChange) {
+      onNodesChange();
     }
   };
 
@@ -133,46 +166,61 @@ export default function SkillTree({ nodes, onNodeClick }: SkillTreeProps) {
             <div className={`w-10 h-0.5 ${style.border} opacity-50`}></div>
           )}
 
-          {/* Node */}
-          <div
-            onClick={() => handleNodeClick(node.id)}
-            className={`flex-1 p-4 border-2 cursor-pointer
-                       ${style.bg} ${style.border} ${style.text}
-                       hover:border-lab-cyan hover:shadow-glow-sm hover:translate-x-1
-                       transition-all duration-300
-                       ${style.glow}
-                       ${style.alert ? 'animate-pulse-glow' : ''}
-                       group`}
-            style={{ borderRadius: '2px' }}
+          {/* Draggable Node */}
+          <DraggableNodeCard
+            nodeId={node.id}
+            nodeName={node.name}
+            currentParentId={node.parentId}
+            allNodes={nodes.map(n => ({ id: n.id, name: n.name, parentName: nodes.find(p => p.id === n.parentId)?.name }))}
+            onDrop={handleNodeDrop}
+            className="flex-1"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="font-mono font-bold text-lg mb-2 uppercase tracking-wide group-hover:text-lab-cyan transition-colors">
-                  {node.name}
-                </h3>
-                <div className="flex items-center gap-4 text-xs font-mono text-lab-text-secondary">
-                  <span>{node._count?.cards || 0} CARDS</span>
-                  <span>•</span>
-                  <span className="font-bold text-lab-cyan">{node.nodeStrength.toFixed(1)}%</span>
+            <div
+              onClick={() => handleNodeClick(node.id)}
+              className={`p-4 border-2 cursor-pointer
+                         ${style.bg} ${style.border} ${style.text}
+                         hover:border-lab-cyan hover:shadow-glow-sm hover:translate-x-1
+                         transition-all duration-300
+                         ${style.glow}
+                         ${style.alert ? 'animate-pulse-glow' : ''}
+                         group`}
+              style={{ borderRadius: '2px' }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  {/* Editable Name */}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <EditableNodeName
+                      nodeId={node.id}
+                      initialName={node.name}
+                      onSave={handleNameSave}
+                      className="font-mono font-bold text-lg mb-2 uppercase tracking-wide group-hover:text-lab-cyan transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-4 text-xs font-mono text-lab-text-secondary">
+                    <span>{node._count?.cards || 0} CARDS</span>
+                    <span>•</span>
+                    <span className="font-bold text-lab-cyan">{node.nodeStrength.toFixed(1)}%</span>
+                  </div>
                 </div>
+                {node.strengthLabel && (
+                  <div className="text-3xl group-hover:scale-110 transition-transform">
+                    {node.strengthLabel.emoji}
+                  </div>
+                )}
               </div>
-              {node.strengthLabel && (
-                <div className="text-3xl group-hover:scale-110 transition-transform">
-                  {node.strengthLabel.emoji}
-                </div>
-              )}
-            </div>
 
-            {/* Heat Map Progress Bar */}
-            <div className="mt-3">
-              <HeatMapBar
-                strength={node.nodeStrength}
-                showPercentage={false}
-                size="small"
-                animate={true}
-              />
+              {/* Heat Map Progress Bar */}
+              <div className="mt-3">
+                <HeatMapBar
+                  strength={node.nodeStrength}
+                  showPercentage={false}
+                  size="small"
+                  animate={true}
+                />
+              </div>
             </div>
-          </div>
+          </DraggableNodeCard>
         </div>
 
         {/* Render children */}

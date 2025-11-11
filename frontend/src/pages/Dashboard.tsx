@@ -497,7 +497,11 @@ export default function Dashboard() {
               </p>
             </div>
           ) : viewMode === 'tree' ? (
-            <SkillTree nodes={allNodes} onNodeClick={openNodeSheet} />
+            <SkillTree
+              nodes={allNodes}
+              onNodeClick={openNodeSheet}
+              onNodesChange={loadDashboardData}
+            />
           ) : viewMode === 'graph' ? (
             <div className="h-[800px]">
               <GraphView
