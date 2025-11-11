@@ -161,6 +161,43 @@ export default function TextbookImporter() {
     );
   };
 
+  const updateNodeParent = (index: number, newParentName: string | undefined) => {
+    setExtractedNodes((prev) =>
+      prev.map((node, i) => (i === index ? { ...node, parentName: newParentName } : node))
+    );
+  };
+
+  // Organize nodes hierarchically for display
+  const organizeNodesHierarchically = () => {
+    const nodeMap = new Map(extractedNodes.map((node, idx) => [node.name, { node, idx, depth: 0 }]));
+
+    // Calculate depth for each node
+    const calculateDepth = (nodeName: string, visited = new Set<string>()): number => {
+      if (visited.has(nodeName)) return 0; // Circular reference protection
+      visited.add(nodeName);
+
+      const nodeData = nodeMap.get(nodeName);
+      if (!nodeData || !nodeData.node.parentName) return 0;
+
+      return 1 + calculateDepth(nodeData.node.parentName, visited);
+    };
+
+    extractedNodes.forEach((node) => {
+      const nodeData = nodeMap.get(node.name);
+      if (nodeData) {
+        nodeData.depth = calculateDepth(node.name);
+      }
+    });
+
+    // Sort: parents first, then children
+    return [...nodeMap.values()].sort((a, b) => {
+      if (a.depth !== b.depth) return a.depth - b.depth;
+      return a.idx - b.idx;
+    });
+  };
+
+  const hierarchicalNodes = extractedNodes.length > 0 ? organizeNodesHierarchically() : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 page-enter">
       {/* Header */}

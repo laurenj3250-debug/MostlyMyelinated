@@ -342,20 +342,17 @@ function deduplicateNodes(allNodes: Array<{
   name: string;
   parentName?: string;
   summary: string;
-  facts: string[];
   suggestedTags: string[];
 }>): Array<{
   name: string;
   parentName?: string;
   summary: string;
-  facts: string[];
   suggestedTags: string[];
 }> {
   const nodeMap = new Map<string, {
     name: string;
     parentName?: string;
     summary: string;
-    facts: Set<string>;
     suggestedTags: Set<string>;
   }>();
 
@@ -365,11 +362,6 @@ function deduplicateNodes(allNodes: Array<{
     if (nodeMap.has(key)) {
       // Merge with existing node
       const existing = nodeMap.get(key)!;
-
-      // Add new facts (deduplicate)
-      for (const fact of node.facts) {
-        existing.facts.add(fact);
-      }
 
       // Add new tags (deduplicate)
       for (const tag of node.suggestedTags) {
@@ -391,7 +383,6 @@ function deduplicateNodes(allNodes: Array<{
         name: node.name,
         parentName: node.parentName,
         summary: node.summary,
-        facts: new Set(node.facts),
         suggestedTags: new Set(node.suggestedTags),
       });
     }
@@ -402,7 +393,6 @@ function deduplicateNodes(allNodes: Array<{
     name: node.name,
     parentName: node.parentName,
     summary: node.summary,
-    facts: Array.from(node.facts),
     suggestedTags: Array.from(node.suggestedTags),
   }));
 }
