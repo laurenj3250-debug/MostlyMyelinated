@@ -279,7 +279,7 @@ async function checkCircularReference(
     visited.add(currentId);
 
     // Get parent of current node
-    const current = await prisma.node.findFirst({
+    const current: { parentId: string | null } | null = await prisma.node.findFirst({
       where: { id: currentId, userId },
       select: { parentId: true },
     });
