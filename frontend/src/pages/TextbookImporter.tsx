@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, Loader2, BookOpen, CheckCircle, XCircle, Sparkles, FileCheck, Info } from 'lucide-react';
 import axios from 'axios';
