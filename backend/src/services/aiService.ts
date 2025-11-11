@@ -413,7 +413,7 @@ export async function extractNodesFromLargeTextbook(
   }>;
   chunksProcessed: number;
 }> {
-  const CHUNK_SIZE = parseInt(process.env.AI_CHUNK_SIZE || '30000', 10);
+  const CHUNK_SIZE = parseInt(process.env.AI_CHUNK_SIZE || '100000', 10);
   const chunks = smartSplitText(text, CHUNK_SIZE);
 
   console.log(`Processing ${chunks.length} chunks (${text.length} chars total)`);
@@ -471,8 +471,8 @@ export async function extractNodesFromTextbook(text: string): Promise<{
     suggestedTags: string[];
   }>;
 }> {
-  // Increased limit from 15000 to 30000 characters
-  const textToAnalyze = text.slice(0, 30000);
+  // Analyze up to 100k characters for single-chunk processing
+  const textToAnalyze = text.slice(0, 100000);
 
   const prompt = `You are analyzing a veterinary neurology textbook chapter. Extract the knowledge structure as a hierarchy of topics (nodes).
 

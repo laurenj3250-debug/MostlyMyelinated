@@ -335,10 +335,11 @@ router.post('/extract-nodes', upload.single('file'), async (req: AuthRequest, re
     }
 
     // Calculate estimated chunks
-    const CHUNK_SIZE = parseInt(process.env.AI_CHUNK_SIZE || '30000', 10);
+    const CHUNK_SIZE = parseInt(process.env.AI_CHUNK_SIZE || '100000', 10);
     const estimatedChunks = Math.ceil(text.length / CHUNK_SIZE);
 
     console.log(`Processing "${fileName}" (${fileSize} bytes, ${text.length} chars, ~${estimatedChunks} chunks)`);
+    console.log(`First 500 chars of extracted text:`, text.slice(0, 500));
 
     let result;
     let chunksProcessed = 1;
