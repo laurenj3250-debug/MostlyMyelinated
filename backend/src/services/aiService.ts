@@ -35,7 +35,7 @@ Return ONLY valid JSON, no other text.`;
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 2000,
       messages: [
         {
@@ -92,7 +92,7 @@ Return ONLY valid JSON, no other text.`;
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1500,
       messages: [
         {
@@ -137,7 +137,7 @@ Return only the summary text, no JSON or formatting.`;
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 300,
       messages: [
         {
@@ -187,7 +187,7 @@ Return ONLY valid JSON, no other text.`;
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 500,
       messages: [
         {
@@ -514,7 +514,7 @@ Return ONLY valid JSON in this format:
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 4000,
       messages: [
         {
