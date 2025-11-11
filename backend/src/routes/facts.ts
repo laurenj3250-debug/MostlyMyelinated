@@ -24,10 +24,10 @@ router.post('/parse', async (req: AuthRequest, res) => {
       });
     }
 
-    // Limit to 20 notes per request
-    if (notes.length > 20) {
+    // Limit to 100 notes per request
+    if (notes.length > 100) {
       return res.status(400).json({
-        error: 'Maximum 20 notes per request',
+        error: 'Maximum 100 notes per request',
       });
     }
 
