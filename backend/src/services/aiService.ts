@@ -515,7 +515,7 @@ Return ONLY valid JSON in this format:
   try {
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 4000,
+      max_tokens: 8000, // Increased from 4000 to allow full JSON responses
       messages: [
         {
           role: 'user',
@@ -526,9 +526,21 @@ Return ONLY valid JSON in this format:
 
     const content = message.content[0];
     if (content.type === 'text') {
+      console.log('AI response (first 500 chars):', content.text.slice(0, 500));
+
       const jsonMatch = content.text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const jsonStr = jsonMatch[0];
+
+        // Validate JSON is complete before parsing
+        try {
+          const parsed = JSON.parse(jsonStr);
+          return parsed;
+        } catch (parseError) {
+          console.error('JSON parse error. Response was:', jsonStr.slice(0, 1000));
+          console.error('Parse error:', parseError);
+          throw new Error('AI returned incomplete or invalid JSON. Try a smaller text sample or simpler content.');
+        }
       }
     }
 
