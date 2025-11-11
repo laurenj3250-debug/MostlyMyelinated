@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, Loader2, BookOpen, CheckCircle, XCircle, Sparkles, FileCheck, Info } from 'lucide-react';
 import axios from 'axios';
 import EditableNodeName from '../components/EditableNodeName';
+import DraggableNodeCard from '../components/DraggableNodeCard';
 
 interface ExtractedNode {
   name: string;
@@ -165,6 +166,23 @@ export default function TextbookImporter() {
     setExtractedNodes((prev) =>
       prev.map((node, i) => (i === index ? { ...node, parentName: newParentName } : node))
     );
+  };
+
+  // Handle drag-and-drop parent change
+  const handleNodeDrop = async (draggedNodeId: string, targetNodeId: string) => {
+    // Find the dragged and target nodes by their temporary IDs
+    const draggedIndex = parseInt(draggedNodeId.replace('temp-', ''));
+    const targetIndex = parseInt(targetNodeId.replace('temp-', ''));
+
+    const draggedNode = extractedNodes[draggedIndex];
+    const targetNode = extractedNodes[targetIndex];
+
+    if (!draggedNode || !targetNode) {
+      throw new Error('Node not found');
+    }
+
+    // Update the parent relationship
+    updateNodeParent(draggedIndex, targetNode.name);
   };
 
   // Organize nodes hierarchically for display
@@ -467,12 +485,16 @@ export default function TextbookImporter() {
             {/* Node List with Hierarchy */}
             <div className="space-y-4">
               {hierarchicalNodes.map(({ node, idx, depth }) => (
-                <div
-                  key={idx}
-                  style={{ marginLeft: `${depth * 2.5}rem` }}
-                  className={`card-gradient transition-all duration-300
-                            ${node.selected ? 'ring-4 ring-green-300' : 'opacity-60 hover:opacity-80'}`}
-                >
+                <div key={idx} style={{ marginLeft: `${depth * 2.5}rem` }}>
+                  <DraggableNodeCard
+                    nodeId={`temp-${idx}`}
+                    nodeName={node.name}
+                    currentParentId={node.parentName ? `temp-${extractedNodes.findIndex(n => n.name === node.parentName)}` : undefined}
+                    allNodes={extractedNodes.map((n, i) => ({ id: `temp-${i}`, name: n.name, parentName: n.parentName }))}
+                    onDrop={handleNodeDrop}
+                    className={`card-gradient transition-all duration-300
+                              ${node.selected ? 'ring-4 ring-green-300' : 'opacity-60 hover:opacity-80'}`}
+                  >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 mt-1 cursor-pointer" onClick={() => toggleNode(idx)}>
                       {node.selected ? (
@@ -544,6 +566,7 @@ export default function TextbookImporter() {
                       )}
                     </div>
                   </div>
+                </DraggableNodeCard>
                 </div>
               ))}
             </div>
