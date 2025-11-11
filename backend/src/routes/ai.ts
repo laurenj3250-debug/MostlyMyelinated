@@ -89,7 +89,7 @@ router.post('/generate-cards', async (req: AuthRequest, res) => {
 
     // Generate cards using AI
     const aiCards = await generateCardsWithAI({
-      statement: fact.statement,
+      statement: fact.cleanedText,
       factType: fact.factType,
     });
 
@@ -99,7 +99,7 @@ router.post('/generate-cards', async (req: AuthRequest, res) => {
         prisma.card.create({
           data: {
             userId: req.user!.id,
-            nodeId: fact.nodeId,
+            nodeId: fact.nodeId!,
             factId: fact.id,
             front: card.front,
             back: card.back,
@@ -151,7 +151,7 @@ router.post('/generate-summary', async (req: AuthRequest, res) => {
     // Generate summary using AI
     const summary = await generateNodeSummary(
       node.name,
-      node.facts.map((f) => f.statement)
+      node.facts.map((f) => f.cleanedText)
     );
 
     // Update node with summary
@@ -195,11 +195,11 @@ router.post('/improve-fact', async (req: AuthRequest, res) => {
     }
 
     // Get AI suggestions
-    const improvement = await suggestFactImprovements(fact.statement);
+    const improvement = await suggestFactImprovements(fact.cleanedText);
 
     res.json({
       success: true,
-      original: fact.statement,
+      original: fact.cleanedText,
       improved: improvement.improved,
       reasoning: improvement.reasoning,
     });
@@ -238,10 +238,12 @@ router.post('/batch-process', async (req: AuthRequest, res) => {
       extractedFacts.map((f) =>
         prisma.fact.create({
           data: {
+            userId: req.user!.id,
             nodeId,
-            statement: f.statement,
+            originalText: f.statement,
+            cleanedText: f.statement,
             factType: f.factType,
-            keyTerms: f.keyTerms,
+            confidence: 0.8,
           },
         })
       )
@@ -253,7 +255,7 @@ router.post('/batch-process', async (req: AuthRequest, res) => {
     if (autoGenerateCards) {
       for (const fact of facts) {
         const aiCards = await generateCardsWithAI({
-          statement: fact.statement,
+          statement: fact.cleanedText,
           factType: fact.factType,
         });
 
@@ -433,10 +435,12 @@ router.post('/import-nodes', async (req: AuthRequest, res) => {
           nodeData.facts.map((factStatement: string) =>
             prisma.fact.create({
               data: {
+                userId: req.user!.id,
                 nodeId: node.id,
-                statement: factStatement,
+                originalText: factStatement,
+                cleanedText: factStatement,
                 factType: 'simple',
-                keyTerms: [],
+                confidence: 0.8,
               },
             })
           )

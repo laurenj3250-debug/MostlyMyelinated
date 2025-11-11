@@ -137,7 +137,7 @@ router.post('/parse', async (req: AuthRequest, res) => {
 // Create fact for a node
 router.post('/', async (req: AuthRequest, res) => {
   try {
-    const { nodeId, statement, factType, keyTerms } = req.body;
+    const { nodeId, statement, factType } = req.body;
 
     if (!nodeId || !statement || !factType) {
       return res.status(400).json({
@@ -154,15 +154,14 @@ router.post('/', async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Node not found' });
     }
 
-    // Extract key terms if not provided
-    const terms = keyTerms || extractKeyTerms(statement);
-
     const fact = await prisma.fact.create({
       data: {
+        userId: req.user!.id,
         nodeId,
-        statement,
+        originalText: statement,
+        cleanedText: statement,
         factType,
-        keyTerms: terms,
+        confidence: 0.8,
       },
     });
 
@@ -254,9 +253,9 @@ router.post('/:id/preview-cards', async (req: AuthRequest, res) => {
 
     // Generate card templates
     const templates = generateCards({
-      statement: fact.statement,
+      statement: fact.cleanedText,
       factType: fact.factType as any,
-      keyTerms: fact.keyTerms,
+      keyTerms: [],
     });
 
     res.json({
@@ -293,9 +292,9 @@ router.post('/:id/generate-cards', async (req: AuthRequest, res) => {
 
     // Use provided templates or generate new ones
     const templates = cardTemplates || generateCards({
-      statement: fact.statement,
+      statement: fact.cleanedText,
       factType: fact.factType as any,
-      keyTerms: fact.keyTerms,
+      keyTerms: [],
     });
 
     // Create cards in database
@@ -304,7 +303,7 @@ router.post('/:id/generate-cards', async (req: AuthRequest, res) => {
         prisma.card.create({
           data: {
             userId: req.user!.id,
-            nodeId: fact.nodeId,
+            nodeId: fact.nodeId!,
             factId: fact.id,
             front: template.front,
             back: template.back,

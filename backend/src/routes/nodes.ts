@@ -40,7 +40,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
       include: {
         facts: {
           include: {
-            cards: {
+            Card: {
               select: {
                 id: true,
                 front: true,
