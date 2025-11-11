@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [userLevel, setUserLevel] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'list' | 'tree' | 'graph'>('list');
   const [moduleFilter, setModuleFilter] = useState<string>('All');
+  const [showRecentlyImported, setShowRecentlyImported] = useState(false);
   const [nodeSheetOpen, setNodeSheetOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [allRelationships, setAllRelationships] = useState<any[]>([]);
@@ -34,6 +35,19 @@ export default function Dashboard() {
   const closeNodeSheet = () => {
     setNodeSheetOpen(false);
     setSelectedNodeId(null);
+  };
+
+  // Check if node was imported within last 24 hours
+  const isRecentlyImported = (node: Node): boolean => {
+    if (!node.importedAt || node.isDismissed) return false;
+
+    const importDate = typeof node.importedAt === 'string'
+      ? new Date(node.importedAt)
+      : node.importedAt;
+    const now = new Date();
+    const diffHours = (now.getTime() - importDate.getTime()) / (1000 * 60 * 60);
+
+    return diffHours < 24;
   };
 
   useEffect(() => {
@@ -494,19 +508,22 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              {/* Module filter */}
+              {/* Module filter + Recently Imported */}
               <div className="flex flex-wrap gap-3 mb-6">
                 {['All', 'Spinal', 'Brainstem', 'Cerebrum', 'CSF', 'Clinical', 'Other'].map(module => (
                   <button
                     key={module}
-                    onClick={() => setModuleFilter(module)}
+                    onClick={() => {
+                      setModuleFilter(module);
+                      setShowRecentlyImported(false);
+                    }}
                     className={`px-4 py-2 text-xs font-display font-bold uppercase tracking-wider rounded-pill border-thin transition-all ${
-                      moduleFilter === module
+                      moduleFilter === module && !showRecentlyImported
                         ? 'border-neon-purple text-neon-fuchsia'
                         : 'border-lab-border text-lab-text-muted hover:border-neon-purple/50'
                     }`}
                     style={
-                      moduleFilter === module
+                      moduleFilter === module && !showRecentlyImported
                         ? {
                             background: 'rgba(163, 75, 255, 0.15)',
                             boxShadow: '0 0 12px rgba(163, 75, 255, 0.3)'
@@ -517,12 +534,47 @@ export default function Dashboard() {
                     {module}
                   </button>
                 ))}
+
+                {/* Recently Imported special filter */}
+                <button
+                  onClick={() => {
+                    setShowRecentlyImported(!showRecentlyImported);
+                    if (!showRecentlyImported) {
+                      setModuleFilter('All');
+                    }
+                  }}
+                  className={`px-4 py-2 text-xs font-display font-bold uppercase tracking-wider rounded-pill border-thin transition-all ${
+                    showRecentlyImported
+                      ? 'border-neon-pink text-neon-pink'
+                      : 'border-lab-border text-lab-text-muted hover:border-neon-pink/50'
+                  }`}
+                  style={
+                    showRecentlyImported
+                      ? {
+                          background: 'rgba(255, 94, 205, 0.15)',
+                          boxShadow: '0 0 12px rgba(255, 94, 205, 0.4)'
+                        }
+                      : {}
+                  }
+                >
+                  ✨ RECENTLY IMPORTED
+                </button>
               </div>
 
               {/* Status cards grid - sorted by weakness */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {allNodes
-                  .filter(node => moduleFilter === 'All' || node.module === moduleFilter || (!node.module && moduleFilter === 'Other'))
+                  .filter(node => {
+                    // Apply recently imported filter if active
+                    if (showRecentlyImported && !isRecentlyImported(node)) {
+                      return false;
+                    }
+
+                    // Apply module filter
+                    if (moduleFilter === 'All') return true;
+                    if (moduleFilter === 'Other') return !node.module;
+                    return node.module === moduleFilter;
+                  })
                   .sort((a, b) => a.nodeStrength - b.nodeStrength) // Weakest first
                   .map(node => (
                     <NodeStatusCard

@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import NewNodeBadge from './NewNodeBadge';
 
 interface NodeStatusCardProps {
   node: {
@@ -10,12 +12,30 @@ interface NodeStatusCardProps {
       cards: number;
     };
     dueCount?: number;
+    importBatchId?: string;
+    importedAt?: Date | string;
+    sourceFile?: string;
+    isDismissed?: boolean;
   };
   onClick?: () => void;
 }
 
 export default function NodeStatusCard({ node, onClick }: NodeStatusCardProps) {
   const navigate = useNavigate();
+  const [badgeDismissed, setBadgeDismissed] = useState(false);
+
+  // Check if node was imported within last 24 hours
+  const isRecentlyImported = (): boolean => {
+    if (!node.importedAt || node.isDismissed || badgeDismissed) return false;
+
+    const importDate = typeof node.importedAt === 'string'
+      ? new Date(node.importedAt)
+      : node.importedAt;
+    const now = new Date();
+    const diffHours = (now.getTime() - importDate.getTime()) / (1000 * 60 * 60);
+
+    return diffHours < 24;
+  };
 
   const getStatusLabel = (strength: number) => {
     if (strength < 20)
@@ -92,12 +112,23 @@ export default function NodeStatusCard({ node, onClick }: NodeStatusCardProps) {
       )}
 
       <div className="p-4">
-        {/* Node name + strength */}
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-base font-mono font-bold text-lab-text-primary group-hover:text-lab-cyan transition-colors flex-1">
-            {node.name}
-          </h3>
-          <span className="text-2xl font-mono font-bold text-lab-cyan ml-2">
+        {/* Node name + strength + NEW badge */}
+        <div className="flex items-start justify-between mb-3 gap-2">
+          <div className="flex items-center gap-2 flex-1">
+            <h3 className="text-base font-mono font-bold text-lab-text-primary group-hover:text-lab-cyan transition-colors">
+              {node.name}
+            </h3>
+            {isRecentlyImported() && (
+              <NewNodeBadge
+                nodeId={node.id}
+                importedAt={node.importedAt!}
+                sourceFile={node.sourceFile}
+                onDismiss={() => setBadgeDismissed(true)}
+                className="flex-shrink-0"
+              />
+            )}
+          </div>
+          <span className="text-2xl font-mono font-bold text-lab-cyan ml-2 flex-shrink-0">
             {Math.round(node.nodeStrength)}%
           </span>
         </div>

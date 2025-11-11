@@ -36,6 +36,11 @@ export interface Node {
     cards: number;
     facts: number;
   };
+  // Import tracking
+  importBatchId?: string;
+  importedAt?: Date | string;
+  sourceFile?: string;
+  isDismissed?: boolean;
 }
 
 // Fact types
