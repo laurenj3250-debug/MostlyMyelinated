@@ -28,7 +28,6 @@ export default function TextbookImporter() {
   const [loading, setLoading] = useState(false);
   const [extractedNodes, setExtractedNodes] = useState<ExtractedNode[]>([]);
   const [importing, setImporting] = useState(false);
-  const [autoGenerateCards, setAutoGenerateCards] = useState(true);
   const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
   const [processingStatus, setProcessingStatus] = useState<string>('');
 
@@ -131,10 +130,10 @@ export default function TextbookImporter() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/ai/import-nodes`,
+        '/api/ai/import-nodes',
         {
           nodes: selectedNodes,
-          autoGenerateCards,
+          fileName: fileMetadata?.fileName || file?.name,
         },
         {
           headers: {
@@ -143,11 +142,10 @@ export default function TextbookImporter() {
         }
       );
 
-      alert(
-        `Successfully imported ${response.data.nodesCreated} nodes!${
-          autoGenerateCards ? ' Cards are being generated...' : ''
-        }`
-      );
+      const chapterInfo = response.data.chapterTag
+        ? ` (tagged as ${response.data.chapterTag})`
+        : '';
+      alert(`Successfully imported ${response.data.nodesCreated} nodes!${chapterInfo}`);
       navigate('/');
     } catch (error: any) {
       console.error('Import error:', error);
@@ -410,19 +408,6 @@ export default function TextbookImporter() {
                 >
                   Start Over
                 </button>
-              </div>
-
-              {/* Auto-generate cards toggle */}
-              <div className="flex items-center gap-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl mb-6">
-                <input
-                  type="checkbox"
-                  checked={autoGenerateCards}
-                  onChange={(e) => setAutoGenerateCards(e.target.checked)}
-                  className="w-5 h-5 text-blue-600 rounded"
-                />
-                <label className="font-semibold text-gray-900">
-                  Auto-generate flashcards for all facts (recommended)
-                </label>
               </div>
 
               <button

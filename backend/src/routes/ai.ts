@@ -402,10 +402,19 @@ router.post('/extract-nodes', upload.single('file'), async (req: AuthRequest, re
  */
 router.post('/import-nodes', async (req: AuthRequest, res) => {
   try {
-    const { nodes, autoGenerateCards } = req.body;
+    const { nodes, fileName } = req.body;
 
     if (!nodes || !Array.isArray(nodes) || nodes.length === 0) {
       return res.status(400).json({ error: 'nodes array required' });
+    }
+
+    // Extract chapter name from filename (e.g., "Chapter 8.pdf" → "chapter-8")
+    let chapterTag: string | undefined;
+    if (fileName) {
+      const match = fileName.match(/chapter\s*(\d+)/i);
+      if (match) {
+        chapterTag = `chapter-${match[1]}`;
+      }
     }
 
     // Map to track created nodes
@@ -416,69 +425,31 @@ router.post('/import-nodes', async (req: AuthRequest, res) => {
     for (const nodeData of nodes) {
       const parentId = nodeData.parentName ? nodeMap.get(nodeData.parentName) : undefined;
 
+      // Add chapter tag to all nodes
+      const tags = nodeData.suggestedTags || [];
+      if (chapterTag && !tags.includes(chapterTag)) {
+        tags.push(chapterTag);
+      }
+
       const node = await prisma.node.create({
         data: {
           userId: req.user!.id,
           name: nodeData.name,
           summary: nodeData.summary,
           parentId,
-          tags: nodeData.suggestedTags || [],
+          tags,
         },
       });
 
       nodeMap.set(nodeData.name, node.id);
       createdNodes.push(node);
-
-      // Create facts for this node
-      if (nodeData.facts && nodeData.facts.length > 0) {
-        const facts = await Promise.all(
-          nodeData.facts.map((factStatement: string) =>
-            prisma.fact.create({
-              data: {
-                userId: req.user!.id,
-                nodeId: node.id,
-                originalText: factStatement,
-                cleanedText: factStatement,
-                factType: 'simple',
-                confidence: 0.8,
-              },
-            })
-          )
-        );
-
-        // Optionally generate cards for each fact
-        if (autoGenerateCards) {
-          for (const fact of facts) {
-            const aiCards = await generateCardsWithAI({
-              statement: fact.cleanedText,
-              factType: fact.factType,
-            });
-
-            await Promise.all(
-              aiCards.map((card) =>
-                prisma.card.create({
-                  data: {
-                    userId: req.user!.id,
-                    nodeId: node.id,
-                    factId: fact.id,
-                    front: card.front,
-                    back: card.back,
-                    hint: card.hint,
-                    cardType: card.cardType,
-                    fsrsData: createInitialFSRSData(),
-                  },
-                })
-              )
-            );
-          }
-        }
-      }
     }
 
     res.json({
       success: true,
       nodesCreated: createdNodes.length,
       nodes: createdNodes,
+      chapterTag,
     });
   } catch (error) {
     console.error('AI node import error:', error);

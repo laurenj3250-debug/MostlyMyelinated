@@ -419,7 +419,6 @@ export async function extractNodesFromLargeTextbook(
     name: string;
     parentName?: string;
     summary: string;
-    facts: string[];
     suggestedTags: string[];
   }>;
   chunksProcessed: number;
@@ -433,7 +432,6 @@ export async function extractNodesFromLargeTextbook(
     name: string;
     parentName?: string;
     summary: string;
-    facts: string[];
     suggestedTags: string[];
   }> = [];
 
@@ -480,7 +478,6 @@ export async function extractNodesFromTextbook(text: string): Promise<{
     name: string;
     parentName?: string;
     summary: string;
-    facts: string[];
     suggestedTags: string[];
   }>;
 }> {
@@ -492,9 +489,8 @@ export async function extractNodesFromTextbook(text: string): Promise<{
 For each topic, identify:
 1. Topic name (concise, specific)
 2. Parent topic (if it's a subtopic)
-3. Brief summary (2-3 sentences)
-4. Key facts (5-15 atomic, testable facts)
-5. Suggested tags for categorization
+3. Brief summary (2-3 sentences covering key concepts)
+4. Suggested tags for categorization
 
 Focus on creating a logical hierarchy. For example:
 - Main topic: "Spinal Cord Anatomy"
@@ -504,6 +500,8 @@ Focus on creating a logical hierarchy. For example:
   - Subtopic: "C6-T2 Lesions"
   - Subtopic: "T3-L3 Lesions"
 
+Extract as many nodes as make sense to capture the chapter's knowledge structure (10-30 nodes is typical).
+
 Textbook content:
 ${textToAnalyze}
 
@@ -512,21 +510,13 @@ Return ONLY valid JSON in this format:
   "nodes": [
     {
       "name": "Spinal Cord Anatomy",
-      "summary": "Overview of spinal cord structure...",
-      "facts": [
-        "The spinal cord has cervical and lumbar enlargements for limb innervation",
-        "White matter contains ascending and descending tracts"
-      ],
+      "summary": "Overview of spinal cord structure including gray and white matter organization, cervical and lumbar enlargements for limb innervation, and segmental anatomy.",
       "suggestedTags": ["anatomy", "spinal-cord"]
     },
     {
       "name": "White Matter Tracts",
       "parentName": "Spinal Cord Anatomy",
-      "summary": "Organization of ascending and descending pathways...",
-      "facts": [
-        "Dorsal columns carry proprioception and vibration",
-        "Lateral corticospinal tracts carry motor commands"
-      ],
+      "summary": "Organization of ascending sensory pathways (dorsal columns, spinothalamic) and descending motor tracts (corticospinal, rubrospinal) within the spinal cord white matter.",
       "suggestedTags": ["anatomy", "spinal-cord", "white-matter"]
     }
   ]
