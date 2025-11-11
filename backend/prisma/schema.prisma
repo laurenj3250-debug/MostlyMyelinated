@@ -60,6 +60,12 @@ model Node {
   nodeStrength Float     @default(0)
   lastReviewed DateTime?
 
+  // Import tracking (for highlighting newly imported nodes)
+  importBatchId String?   // Groups nodes from same import session
+  importedAt    DateTime? // When the node was imported
+  sourceFile    String?   // Original filename (e.g., "Chapter 5.pdf")
+  isDismissed   Boolean   @default(false) // User dismissed "new" badge
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -76,6 +82,8 @@ model Node {
   @@index([userId, nodeStrength])
   @@index([userId, parentId])
   @@index([userId, module])
+  @@index([userId, importBatchId])
+  @@index([userId, importedAt])
 }
 
 model NodeRelationship {

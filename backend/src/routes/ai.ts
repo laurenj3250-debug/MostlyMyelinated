@@ -403,11 +403,15 @@ router.post('/extract-nodes', upload.single('file'), async (req: AuthRequest, re
  */
 router.post('/import-nodes', async (req: AuthRequest, res) => {
   try {
-    const { nodes, fileName } = req.body;
+    const { nodes, fileName, batchId } = req.body;
 
     if (!nodes || !Array.isArray(nodes) || nodes.length === 0) {
       return res.status(400).json({ error: 'nodes array required' });
     }
+
+    // Generate batch ID if not provided (for tracking import groups)
+    const importBatchId = batchId || `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const importedAt = new Date();
 
     // Extract chapter name from filename (e.g., "Chapter 8.pdf" → "chapter-8")
     let chapterTag: string | undefined;
@@ -439,6 +443,11 @@ router.post('/import-nodes', async (req: AuthRequest, res) => {
           summary: nodeData.summary,
           parentId,
           tags,
+          // Import tracking metadata
+          importBatchId,
+          importedAt,
+          sourceFile: fileName || null,
+          isDismissed: false,
         },
       });
 
@@ -451,6 +460,8 @@ router.post('/import-nodes', async (req: AuthRequest, res) => {
       nodesCreated: createdNodes.length,
       nodes: createdNodes,
       chapterTag,
+      batchId: importBatchId,
+      importedAt: importedAt.toISOString(),
     });
   } catch (error) {
     console.error('AI node import error:', error);

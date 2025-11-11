@@ -143,6 +143,153 @@ router.patch('/:id', async (req: AuthRequest, res) => {
   }
 });
 
+// Quick update node name (for inline editing)
+router.patch('/:id/name', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ error: 'Valid name is required' });
+    }
+
+    const result = await prisma.node.updateMany({
+      where: {
+        id,
+        userId: req.user!.id,
+      },
+      data: {
+        name: name.trim(),
+      },
+    });
+
+    if (result.count === 0) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    const updatedNode = await prisma.node.findUnique({
+      where: { id },
+      select: { id: true, name: true, updatedAt: true },
+    });
+
+    res.json(updatedNode);
+  } catch (error) {
+    console.error('Update node name error:', error);
+    res.status(500).json({ error: 'Failed to update node name' });
+  }
+});
+
+// Update node parent (with circular reference validation)
+router.patch('/:id/parent', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { parentId } = req.body;
+
+    // Verify node ownership
+    const node = await prisma.node.findFirst({
+      where: { id, userId: req.user!.id },
+    });
+
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // If setting a parent, verify it exists and check for circular references
+    if (parentId) {
+      const parent = await prisma.node.findFirst({
+        where: { id: parentId, userId: req.user!.id },
+      });
+
+      if (!parent) {
+        return res.status(404).json({ error: 'Parent node not found' });
+      }
+
+      // Check for circular reference
+      const wouldCreateCircle = await checkCircularReference(id, parentId, req.user!.id);
+      if (wouldCreateCircle) {
+        return res.status(400).json({
+          error: 'Cannot create circular reference: parent is a descendant of this node',
+        });
+      }
+    }
+
+    // Update parent
+    const updatedNode = await prisma.node.update({
+      where: { id },
+      data: { parentId: parentId || null },
+      include: {
+        parent: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    res.json(updatedNode);
+  } catch (error) {
+    console.error('Update node parent error:', error);
+    res.status(500).json({ error: 'Failed to update node parent' });
+  }
+});
+
+// Dismiss "new" badge for a node
+router.post('/:id/dismiss-new', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await prisma.node.updateMany({
+      where: {
+        id,
+        userId: req.user!.id,
+      },
+      data: {
+        isDismissed: true,
+      },
+    });
+
+    if (result.count === 0) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    res.json({ id, isDismissed: true });
+  } catch (error) {
+    console.error('Dismiss node error:', error);
+    res.status(500).json({ error: 'Failed to dismiss node' });
+  }
+});
+
+// Helper function to check for circular references
+async function checkCircularReference(
+  nodeId: string,
+  newParentId: string,
+  userId: string
+): Promise<boolean> {
+  const visited = new Set<string>();
+  let currentId: string | null = newParentId;
+
+  while (currentId) {
+    // If we encounter the original node, we have a circle
+    if (currentId === nodeId) {
+      return true;
+    }
+
+    // Prevent infinite loops
+    if (visited.has(currentId)) {
+      break;
+    }
+    visited.add(currentId);
+
+    // Get parent of current node
+    const current = await prisma.node.findFirst({
+      where: { id: currentId, userId },
+      select: { parentId: true },
+    });
+
+    currentId = current?.parentId || null;
+  }
+
+  return false;
+}
+
 // Delete node
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
