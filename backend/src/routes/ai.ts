@@ -450,7 +450,7 @@ router.post('/import-nodes', async (req: AuthRequest, res) => {
         if (autoGenerateCards) {
           for (const fact of facts) {
             const aiCards = await generateCardsWithAI({
-              statement: fact.statement,
+              statement: fact.cleanedText,
               factType: fact.factType,
             });
 
