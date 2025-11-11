@@ -468,17 +468,17 @@ export default function TextbookImporter() {
               </button>
             </div>
 
-            {/* Node List */}
+            {/* Node List with Hierarchy */}
             <div className="space-y-4">
-              {extractedNodes.map((node, index) => (
+              {hierarchicalNodes.map(({ node, idx, depth }) => (
                 <div
-                  key={index}
-                  className={`card-gradient cursor-pointer transition-all duration-300
+                  key={idx}
+                  style={{ marginLeft: `${depth * 2.5}rem` }}
+                  className={`card-gradient transition-all duration-300
                             ${node.selected ? 'ring-4 ring-green-300' : 'opacity-60 hover:opacity-80'}`}
-                  onClick={() => toggleNode(index)}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 mt-1">
+                    <div className="flex-shrink-0 mt-1 cursor-pointer" onClick={() => toggleNode(idx)}>
                       {node.selected ? (
                         <CheckCircle className="w-8 h-8 text-green-600" />
                       ) : (
@@ -486,40 +486,43 @@ export default function TextbookImporter() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-1">{node.name}</h3>
-                          {node.parentName && (
-                            <p className="text-sm text-gray-600 flex items-center gap-2">
-                              <span className="text-gray-400">└─</span>
-                              Child of: <span className="font-semibold">{node.parentName}</span>
-                            </p>
-                          )}
+                      <div className="mb-3">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{node.name}</h3>
+
+                        {/* Depth Indicator */}
+                        {depth > 0 && (
+                          <p className="text-sm text-purple-600 flex items-center gap-2 mb-2 font-semibold">
+                            <span>{'└─'.repeat(depth)}</span>
+                            Level {depth} node
+                          </p>
+                        )}
+
+                        {/* Parent Selector */}
+                        <div className="mb-2">
+                          <label className="text-sm font-semibold text-gray-600 block mb-1">
+                            Parent:
+                          </label>
+                          <select
+                            value={node.parentName || ''}
+                            onChange={(e) => updateNodeParent(idx, e.target.value || undefined)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          >
+                            <option value="">(None - Top Level)</option>
+                            {extractedNodes
+                              .filter((n) => n.name !== node.name)
+                              .map((n, nIdx) => (
+                                <option key={nIdx} value={n.name}>
+                                  {n.name}
+                                </option>
+                              ))}
+                          </select>
                         </div>
                       </div>
 
                       <p className="text-gray-700 leading-relaxed mb-4">{node.summary}</p>
 
-                      <div className="mb-4">
-                        <div className="text-sm font-semibold text-gray-600 mb-2">
-                          Facts ({node.facts.length}):
-                        </div>
-                        <ul className="space-y-1">
-                          {node.facts.slice(0, 3).map((fact, fIdx) => (
-                            <li key={fIdx} className="text-sm text-gray-700 flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              <span>{fact}</span>
-                            </li>
-                          ))}
-                          {node.facts.length > 3 && (
-                            <li className="text-sm text-gray-500 italic">
-                              ...and {node.facts.length - 3} more facts
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-
-                      {node.suggestedTags.length > 0 && (
+                      {node.suggestedTags && node.suggestedTags.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {node.suggestedTags.map((tag, tIdx) => (
                             <span
