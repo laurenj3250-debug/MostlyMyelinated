@@ -37,11 +37,6 @@ export default function TextbookImporter() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const estimateChunks = (size: number): number => {
-    const CHUNK_SIZE = 30000; // characters
-    return Math.ceil(size / CHUNK_SIZE);
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -303,14 +298,10 @@ export default function TextbookImporter() {
                               <span className="text-gray-600">Size:</span>
                               <span className="ml-2 font-semibold text-gray-900">{formatFileSize(file.size)}</span>
                             </div>
-                            <div className="col-span-2">
-                              <span className="text-gray-600">Estimated chunks:</span>
-                              <span className="ml-2 font-semibold text-gray-900">
-                                ~{estimateChunks(file.size * 2)} {/* Rough estimate: assume 2 chars per byte */}
-                              </span>
-                              <Info className="inline w-4 h-4 ml-1 text-gray-400" />
-                              <span className="ml-1 text-xs text-gray-500">
-                                (Large files are automatically split into chunks for processing)
+                            <div className="col-span-2 flex items-center gap-2">
+                              <Info className="w-4 h-4 text-blue-500" />
+                              <span className="text-sm text-gray-600 italic">
+                                AI will automatically analyze and extract knowledge structure
                               </span>
                             </div>
                           </div>
