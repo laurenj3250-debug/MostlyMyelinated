@@ -73,7 +73,7 @@ export default function TextbookImporter() {
         setProcessingStatus(`Processing ${file.name}...`);
 
         response = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/ai/extract-nodes`,
+          '/api/ai/extract-nodes',
           formData,
           {
             headers: {
@@ -86,7 +86,7 @@ export default function TextbookImporter() {
         setProcessingStatus('Analyzing text content...');
 
         response = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/ai/extract-nodes`,
+          '/api/ai/extract-nodes',
           { text: textInput },
           {
             headers: {
