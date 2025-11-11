@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, Loader2, BookOpen, CheckCircle, XCircle, Sparkles, FileCheck, Info } from 'lucide-react';
 import axios from 'axios';
+import EditableNodeName from '../components/EditableNodeName';
 
 interface ExtractedNode {
   name: string;
@@ -123,12 +124,16 @@ export default function TextbookImporter() {
 
     setImporting(true);
     try {
+      // Generate a batch ID to group these nodes together
+      const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       const token = localStorage.getItem('token');
       const response = await axios.post(
         '/api/ai/import-nodes',
         {
           nodes: selectedNodes,
           fileName: fileMetadata?.fileName || file?.name,
+          batchId, // Pass batch ID for tracking
         },
         {
           headers: {
@@ -140,7 +145,7 @@ export default function TextbookImporter() {
       const chapterInfo = response.data.chapterTag
         ? ` (tagged as ${response.data.chapterTag})`
         : '';
-      alert(`Successfully imported ${response.data.nodesCreated} nodes!${chapterInfo}`);
+      alert(`Successfully imported ${response.data.nodesCreated} nodes!${chapterInfo}\n\nBatch ID: ${response.data.batchId}`);
       navigate('/');
     } catch (error: any) {
       console.error('Import error:', error);
@@ -478,7 +483,19 @@ export default function TextbookImporter() {
                     </div>
                     <div className="flex-1">
                       <div className="mb-3">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{node.name}</h3>
+                        <div className="mb-2">
+                          <EditableNodeName
+                            nodeId={`temp-${idx}`}
+                            initialName={node.name}
+                            onSave={(_, newName) => {
+                              setExtractedNodes((prev) =>
+                                prev.map((n, i) => (i === idx ? { ...n, name: newName } : n))
+                              );
+                            }}
+                            readonly={false}
+                            className="text-2xl font-bold text-gray-900"
+                          />
+                        </div>
 
                         {/* Depth Indicator */}
                         {depth > 0 && (
