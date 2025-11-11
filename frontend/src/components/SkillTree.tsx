@@ -5,7 +5,6 @@ import { Node } from '../types';
 import HeatMapBar from './HeatMapBar';
 import DraggableNodeCard from './DraggableNodeCard';
 import EditableNodeName from './EditableNodeName';
-import { useToast } from './ToastContainer';
 
 interface SkillTreeProps {
   nodes: Node[];
@@ -22,7 +21,6 @@ interface TreeNode {
 export default function SkillTree({ nodes, onNodeClick, onNodesChange }: SkillTreeProps) {
   const navigate = useNavigate();
   const [treeData, setTreeData] = useState<TreeNode[]>([]);
-  const { addToast } = useToast();
 
   const handleNodeClick = (nodeId: string) => {
     if (onNodeClick) {
@@ -52,8 +50,8 @@ export default function SkillTree({ nodes, onNodeClick, onNodesChange }: SkillTr
   };
 
   // Handle name save
-  const handleNameSave = (nodeId: string, newName: string) => {
-    // Optimistically update local state
+  const handleNameSave = (_nodeId: string, _newName: string) => {
+    // Refresh nodes after name change
     if (onNodesChange) {
       onNodesChange();
     }
