@@ -58,8 +58,8 @@ export default function QuickNotes() {
       return;
     }
 
-    if (noteLines.length > 20) {
-      addToast({ message: 'Maximum 20 notes per batch', type: 'error' });
+    if (noteLines.length > 100) {
+      addToast({ message: 'Maximum 100 notes per batch', type: 'error' });
       return;
     }
 
