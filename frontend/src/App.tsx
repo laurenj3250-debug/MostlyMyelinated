@@ -7,6 +7,7 @@ import Study from './pages/Study';
 import TextbookImporter from './pages/TextbookImporter';
 import QuickNotes from './pages/QuickNotes';
 import BulkImport from './pages/BulkImport';
+import Settings from './pages/Settings';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './components/ToastContainer';
 
@@ -75,6 +76,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <BulkImport />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
                 </PrivateRoute>
               }
             />
