@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, FileText, Loader2, BookOpen, CheckCircle, XCircle, Sparkles, FileCheck, Info } from 'lucide-react';
+import { Upload, FileText, Loader2, BookOpen, CheckCircle, Sparkles, FileCheck, Info } from 'lucide-react';
 import axios from 'axios';
-import EditableNodeName from '../components/EditableNodeName';
-import DraggableNodeCard from '../components/DraggableNodeCard';
+import OrgChartTree from '../components/OrgChartTree';
 
 interface ExtractedNode {
   name: string;
@@ -156,65 +155,32 @@ export default function TextbookImporter() {
     }
   };
 
-  const toggleNode = (index: number) => {
-    setExtractedNodes((prev) =>
-      prev.map((node, i) => (i === index ? { ...node, selected: !node.selected } : node))
-    );
-  };
-
   const updateNodeParent = (index: number, newParentName: string | undefined) => {
     setExtractedNodes((prev) =>
       prev.map((node, i) => (i === index ? { ...node, parentName: newParentName } : node))
     );
   };
 
-  // Handle drag-and-drop parent change
-  const handleNodeDrop = async (draggedNodeId: string, targetNodeId: string) => {
-    // Find the dragged and target nodes by their temporary IDs
-    const draggedIndex = parseInt(draggedNodeId.replace('temp-', ''));
-    const targetIndex = parseInt(targetNodeId.replace('temp-', ''));
+  const deleteNode = (index: number) => {
+    const nodeToDelete = extractedNodes[index];
+    setExtractedNodes((prev) => {
+      // Remove the node
+      const filtered = prev.filter((_, i) => i !== index);
 
-    const draggedNode = extractedNodes[draggedIndex];
-    const targetNode = extractedNodes[targetIndex];
-
-    if (!draggedNode || !targetNode) {
-      throw new Error('Node not found');
-    }
-
-    // Update the parent relationship
-    updateNodeParent(draggedIndex, targetNode.name);
-  };
-
-  // Organize nodes hierarchically for display
-  const organizeNodesHierarchically = () => {
-    const nodeMap = new Map(extractedNodes.map((node, idx) => [node.name, { node, idx, depth: 0 }]));
-
-    // Calculate depth for each node
-    const calculateDepth = (nodeName: string, visited = new Set<string>()): number => {
-      if (visited.has(nodeName)) return 0; // Circular reference protection
-      visited.add(nodeName);
-
-      const nodeData = nodeMap.get(nodeName);
-      if (!nodeData || !nodeData.node.parentName) return 0;
-
-      return 1 + calculateDepth(nodeData.node.parentName, visited);
-    };
-
-    extractedNodes.forEach((node) => {
-      const nodeData = nodeMap.get(node.name);
-      if (nodeData) {
-        nodeData.depth = calculateDepth(node.name);
-      }
-    });
-
-    // Sort: parents first, then children
-    return [...nodeMap.values()].sort((a, b) => {
-      if (a.depth !== b.depth) return a.depth - b.depth;
-      return a.idx - b.idx;
+      // Update children to remove parent reference
+      return filtered.map((node) =>
+        node.parentName === nodeToDelete.name
+          ? { ...node, parentName: undefined }
+          : node
+      );
     });
   };
 
-  const hierarchicalNodes = extractedNodes.length > 0 ? organizeNodesHierarchically() : [];
+  const handleNodeChange = (index: number, field: string, value: any) => {
+    setExtractedNodes((prev) =>
+      prev.map((node, i) => (i === index ? { ...node, [field]: value } : node))
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 page-enter">
@@ -482,94 +448,16 @@ export default function TextbookImporter() {
               </button>
             </div>
 
-            {/* Node List with Hierarchy */}
-            <div className="space-y-4">
-              {hierarchicalNodes.map(({ node, idx, depth }) => (
-                <div key={idx} style={{ marginLeft: `${depth * 2.5}rem` }}>
-                  <DraggableNodeCard
-                    nodeId={`temp-${idx}`}
-                    nodeName={node.name}
-                    currentParentId={node.parentName ? `temp-${extractedNodes.findIndex(n => n.name === node.parentName)}` : undefined}
-                    allNodes={extractedNodes.map((n, i) => ({ id: `temp-${i}`, name: n.name, parentName: n.parentName }))}
-                    onDrop={handleNodeDrop}
-                    className={`card-gradient transition-all duration-300
-                              ${node.selected ? 'ring-4 ring-green-300' : 'opacity-60 hover:opacity-80'}`}
-                  >
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 mt-1 cursor-pointer" onClick={() => toggleNode(idx)}>
-                      {node.selected ? (
-                        <CheckCircle className="w-8 h-8 text-green-600" />
-                      ) : (
-                        <XCircle className="w-8 h-8 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="mb-3">
-                        <div className="mb-2">
-                          <EditableNodeName
-                            nodeId={`temp-${idx}`}
-                            initialName={node.name}
-                            onSave={(_, newName) => {
-                              setExtractedNodes((prev) =>
-                                prev.map((n, i) => (i === idx ? { ...n, name: newName } : n))
-                              );
-                            }}
-                            readonly={false}
-                            className="text-2xl font-bold text-gray-900"
-                          />
-                        </div>
-
-                        {/* Depth Indicator */}
-                        {depth > 0 && (
-                          <p className="text-sm text-purple-600 flex items-center gap-2 mb-2 font-semibold">
-                            <span>{'└─'.repeat(depth)}</span>
-                            Level {depth} node
-                          </p>
-                        )}
-
-                        {/* Parent Selector */}
-                        <div className="mb-2">
-                          <label className="text-sm font-semibold text-gray-600 block mb-1">
-                            Parent:
-                          </label>
-                          <select
-                            value={node.parentName || ''}
-                            onChange={(e) => updateNodeParent(idx, e.target.value || undefined)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                          >
-                            <option value="">(None - Top Level)</option>
-                            {extractedNodes
-                              .filter((n) => n.name !== node.name)
-                              .map((n, nIdx) => (
-                                <option key={nIdx} value={n.name}>
-                                  {n.name}
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <p className="text-gray-700 leading-relaxed mb-4">{node.summary}</p>
-
-                      {node.suggestedTags && node.suggestedTags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {node.suggestedTags.map((tag, tIdx) => (
-                            <span
-                              key={tIdx}
-                              className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </DraggableNodeCard>
-                </div>
-              ))}
-            </div>
+            {/* Visual Org Chart Tree */}
+            <OrgChartTree
+              nodes={extractedNodes}
+              onNodeChange={handleNodeChange}
+              onNodeDelete={deleteNode}
+              onNodeDrop={(draggedIdx, targetIdx) => {
+                const targetNode = extractedNodes[targetIdx];
+                updateNodeParent(draggedIdx, targetNode.name);
+              }}
+            />
           </div>
         )}
       </div>
