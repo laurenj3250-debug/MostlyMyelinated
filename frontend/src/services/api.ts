@@ -189,6 +189,8 @@ export const nodes = {
     }>;
     autoCreateParents: boolean;
   }) => api.post(`/nodes/bulk-create`, data),
+
+  deleteAll: () => api.delete<{ success: boolean; deletedCount: number; message: string }>('/nodes/bulk-delete-all'),
 };
 
 // Facts API

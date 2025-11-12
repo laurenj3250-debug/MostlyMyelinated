@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { AlertTriangle } from 'lucide-react';
+import { nodes as nodesApi } from '../services/api';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -16,13 +16,8 @@ export default function Settings() {
 
     try {
       setIsDeleting(true);
-      const token = localStorage.getItem('token');
 
-      const response = await axios.delete('http://localhost:3000/api/nodes/bulk-delete-all', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await nodesApi.deleteAll();
 
       // Success - redirect to dashboard
       alert(`Successfully deleted ${response.data.deletedCount} nodes`);
