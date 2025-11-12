@@ -290,6 +290,28 @@ async function checkCircularReference(
   return false;
 }
 
+// Delete all nodes for current user (for testing/reset)
+// IMPORTANT: Must come BEFORE /:id route to avoid matching bulk-delete-all as an ID
+router.delete('/bulk-delete-all', async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+
+    // Delete all nodes for this user (cascade will handle cards, reviews, etc.)
+    const result = await prisma.node.deleteMany({
+      where: { userId },
+    });
+
+    res.json({
+      success: true,
+      deletedCount: result.count,
+      message: `Deleted ${result.count} nodes`,
+    });
+  } catch (error) {
+    console.error('Bulk delete all error:', error);
+    res.status(500).json({ error: 'Failed to delete all nodes' });
+  }
+});
+
 // Delete node
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
@@ -920,27 +942,6 @@ router.post('/bulk-create', async (req: AuthRequest, res) => {
       error: 'Failed to create nodes',
       details: error.message,
     });
-  }
-});
-
-// Delete all nodes for current user (for testing/reset)
-router.delete('/bulk-delete-all', async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user!.id;
-
-    // Delete all nodes for this user (cascade will handle cards, reviews, etc.)
-    const result = await prisma.node.deleteMany({
-      where: { userId },
-    });
-
-    res.json({
-      success: true,
-      deletedCount: result.count,
-      message: `Deleted ${result.count} nodes`,
-    });
-  } catch (error) {
-    console.error('Bulk delete all error:', error);
-    res.status(500).json({ error: 'Failed to delete all nodes' });
   }
 });
 
