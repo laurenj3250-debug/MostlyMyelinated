@@ -377,22 +377,46 @@ router.post('/extract-nodes', upload.single('file'), async (req: AuthRequest, re
     });
   } catch (error: any) {
     console.error('AI node extraction error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+      status: error.status,
+      type: error.type,
+      anthropicError: error.error
+    });
 
     // Better error messages based on error type
     if (error.message?.includes('rate limit')) {
       return res.status(429).json({
         error: 'AI rate limit reached. Please wait a moment and try again.',
+        details: error.message
       });
     }
 
     if (error.message?.includes('timeout')) {
       return res.status(504).json({
         error: 'Request timed out. Try processing a smaller section of the textbook.',
+        details: error.message
+      });
+    }
+
+    if (error.status === 401 || error.message?.includes('authentication') || error.message?.includes('API key')) {
+      return res.status(500).json({
+        error: 'AI service authentication failed. Please contact support.',
+        details: 'Invalid or missing API key'
+      });
+    }
+
+    if (error.status === 404 || error.message?.includes('model')) {
+      return res.status(500).json({
+        error: 'AI model not found. The service may need to be updated.',
+        details: error.message
       });
     }
 
     res.status(500).json({
       error: 'Failed to extract nodes from textbook. Please try again or use a smaller text sample.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
