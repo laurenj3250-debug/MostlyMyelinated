@@ -649,8 +649,8 @@ function CalendarScreen({ data, selectedDate, onSelectDate }: { data: TrackerDat
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
           {calendarData.map((day, i) => (
-            <button key={i} onClick={() => day?.entries?.length > 0 && onSelectDate(day.date)} disabled={!day || day.entries.length === 0} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: day?.isToday ? `2px solid ${colors.accent}` : 'none', backgroundColor: !day ? 'transparent' : day.mood === null ? colors.surface : day.mood > 1 ? colors.enjoymentDim : day.mood < -1 ? colors.quitDim : colors.surface, cursor: day?.entries?.length > 0 ? 'pointer' : 'default', opacity: day ? 1 : 0, position: 'relative' }}>
-              {day && (<><span style={{ fontSize: '14px', color: day.entries.length > 0 ? colors.textPrimary : colors.textMuted, fontWeight: day.isToday ? '700' : '400' }}>{day.day}</span>{day.hasGlass && <div style={{ position: 'absolute', bottom: '4px', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: colors.glass }} />}</>)}
+            <button key={i} onClick={() => (day?.entries?.length ?? 0) > 0 && onSelectDate(day!.date)} disabled={!day || (day.entries?.length ?? 0) === 0} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: day?.isToday ? `2px solid ${colors.accent}` : 'none', backgroundColor: !day ? 'transparent' : day.mood === null ? colors.surface : day.mood > 1 ? colors.enjoymentDim : day.mood < -1 ? colors.quitDim : colors.surface, cursor: (day?.entries?.length ?? 0) > 0 ? 'pointer' : 'default', opacity: day ? 1 : 0, position: 'relative' }}>
+              {day && (<><span style={{ fontSize: '14px', color: (day.entries?.length ?? 0) > 0 ? colors.textPrimary : colors.textMuted, fontWeight: day.isToday ? '700' : '400' }}>{day.day}</span>{day.hasGlass && <div style={{ position: 'absolute', bottom: '4px', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: colors.glass }} />}</>)}
             </button>
           ))}
         </div>
@@ -660,13 +660,13 @@ function CalendarScreen({ data, selectedDate, onSelectDate }: { data: TrackerDat
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '4px', backgroundColor: colors.quitDim }} /><span style={{ color: colors.textSecondary }}>Bad</span></div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: colors.glass }} /><span style={{ color: colors.textSecondary }}>Glass</span></div>
       </div>
-      {selectedDayData?.entries?.length > 0 && (
+      {selectedDayData && (selectedDayData.entries?.length ?? 0) > 0 && (
         <div style={{ backgroundColor: colors.card, borderRadius: '16px', padding: '16px', border: `1px solid ${colors.border}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600' }}>{formatDate(selectedDayData.date)}</h3>
             <button onClick={() => onSelectDate(null)} style={{ background: 'none', border: 'none', color: colors.textSecondary, cursor: 'pointer', fontSize: '16px' }}>✕</button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{selectedDayData.entries.map(e => <EntryCard key={e.id} entry={e} />)}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{selectedDayData.entries!.map(e => <EntryCard key={e.id} entry={e} />)}</div>
         </div>
       )}
     </div>
